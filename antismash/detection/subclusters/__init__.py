@@ -6,13 +6,13 @@
 
 from typing import Any, Optional
 
-from antismash.common.module_results import DetectionResults
+from antismash.common.hmm_rule_parser.cluster_prediction import Ruleset
 from antismash.common.secmet import Record
 from antismash.config import ConfigType
 from antismash.config.args import ModuleArgs
 from antismash.detection import DetectionStage
 
-from .results import SubclusterDetectionResults
+from .results import SubclusterDetectionResults, SubclusterHit
 from .html_output import generate_html, will_handle, generate_javascript_data
 
 NAME = "subclusters"
@@ -49,6 +49,12 @@ def is_enabled(options: ConfigType) -> bool:
     return options.subclusters
 
 
+def check_prereqs(_options: ConfigType) -> list[str]:
+    """ Checks that prerequisites are satisfied.
+    """
+    return []
+
+
 def regenerate_previous_results(results: dict[str, Any], record: Record,
                                 _options: ConfigType) -> Optional[SubclusterDetectionResults]:
     """ Regenerate previous results. 
@@ -56,7 +62,7 @@ def regenerate_previous_results(results: dict[str, Any], record: Record,
     if not results:
         return None
 
-    return SubclusterDetectionResults.from_json(results, record)
+    return SubclusterDetectionResults.from_json(results)
 
 
 def run_on_record(record: Record, previous_results: Optional[SubclusterDetectionResults],
@@ -64,11 +70,30 @@ def run_on_record(record: Record, previous_results: Optional[SubclusterDetection
     """ Finds the external annoations for the given record """
     if previous_results:
         return previous_results
-    results = SubclusterDetectionResults(record.id, "rules_version_placeholder", {})
-    return results
+    
+    # # TODO: build ruleset from rule/HMM files
+    # ruleset: Ruleset = _build_ruleset(options)
+
+    # hits: list[SubclusterHit] = [
+    #     hit.enrich(ruleset) for hit in _detect_hits(record, ruleset)
+    # ]
+
+    # return SubclusterDetectionResults(
+    #     record_id=record.id,
+    #     rules_version=ruleset.tool,
+    #     hits=hits,
+    # )
+
+    return SubclusterDetectionResults(record.id, "ruleset_version_placeholder", [])  # placeholder until real detection is implemented
 
 
-def check_prereqs(_options: ConfigType) -> list[str]:
-    """ Checks that prerequisites are satisfied.
-    """
-    return []
+
+def _build_ruleset(options: ConfigType) -> Ruleset:
+    """Construct the Ruleset from rule/HMM files.  Placeholder."""
+    raise NotImplementedError
+ 
+ 
+def _detect_hits(record: Record, ruleset: Ruleset) -> list[SubclusterHit]:
+    """Run rule-based detection for one region.  Placeholder."""
+    raise NotImplementedError
+
