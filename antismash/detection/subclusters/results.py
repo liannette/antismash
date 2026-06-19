@@ -1,5 +1,7 @@
+import logging
+import json
 from dataclasses import dataclass, field
-from  typing import Any, Dict, List, Optional, Set, Self
+from  typing import Any, Optional, Self
 
 from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
 from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults
@@ -9,18 +11,116 @@ from antismash.common.secmet.locations import FeatureLocation
 from antismash.common.module_results import DetectionResults
 
 
+@dataclass(frozen=True)
+class RuleInfo:
+    """Data for one subcluster detection rule."""
+    identifier: str
+    description: str
+    conditions: str
+
+
+@dataclass(frozen=True)
+class CompoundInfo:
+    """Compound information for a subcluster."""
+    name: str
+    smiles: Optional[str]
+    classification: list[str]
+
+
+@dataclass(frozen=True)
+class DomainInfo:
+    """Data for one phmm domain"""
+    name: str
+    acc: Optional[str]
+    description: Optional[str]
+
+
+@dataclass(frozen=True)
+class DomainHit:
+    """Data for one phmm domain hit that contributed to a subcluster hit."""
+    cds_locus_tag: str
+    domain: DomainInfo
+
+
+@dataclass(frozen=True)
+class SubclusterHitHtmlData:
+    """Data for one subcluster hit, as needed by the HTML generator.
+    
+    Attributes:         
+        rule: RuleInfo instance with metadata about the rule.
+        domain_hits: List of ``DomainHit`` instances for every domain hit that contributed to this subcluster hit.
+        compound: CompoundInfo instance with metadata about the predicted compound.
+    """
+    rule: RuleInfo
+    domain_hits: list[DomainHit]
+    compound: CompoundInfo
+    
+    @property
+    def cds_locus_tags(self) -> list[str]:
+        """Sorted list of all CDS locus tags that contributed to this hit."""
+        return sorted({hit.cds_locus_tag for hit in self.domain_hits})
+    
+
+@dataclass
+class SubclusterHit:
+    """A single detected subcluster.
+ 
+    Attributes:
+        rule: The ``DetectionRule`` that fired.
+        start: Start of the core location (0-based bp).
+        end: End of the core location (0-based bp).
+        cds_results: ``CDSResults`` instances for every CDS that contributed 
+            to this hit, as returned by the rule-based detection pipeline.
+        metadata: Optional ``SubclusterMetadata`` with additional metadata about the hit.
+    """
+    rule: DetectionRule
+    start: int
+    end: int
+    cds_results: list[CDSResults]
+    metadata: Optional[Any] = None  # Placeholder for SubclusterMetadata
+
 
 class SubclusterDetectionResults(DetectionResults): 
-    def __init__(self, record_id: str) -> None:
+    """Results class for the Subcluster detection module """
+    schema_version = 1 # increment when the data format in the results changes
+
+    def __init__(self, record_id: str, rules_version: str, 
+                 hits_by_region: dict[int, list[SubclusterHit]]) -> None:
         super().__init__(record_id)
-        #self.hits_by_region: Dict[int, List[SubclusterHit]] = {}
+        self.rules_version = rules_version
+        self.hits_by_region = hits_by_region
 
     def to_json(self) -> dict[str, Any]:
-        return {"record_id": self.record_id}
+        return {
+            "schema_version": self.schema_version,
+            "rules_version": self.rules_version,
+            "hits_by_region": {
+                region_number: [hit.to_dict() for hit in hits]
+                for region_number, hits in self.hits_by_region.items()
+            }
+        }
 
     @classmethod
     def from_json(cls, data: dict[str, Any], record: Record) -> Self:
-        return cls(record_id=data["record_id"])
+        # check that the previous data version is the same as current, if not, discard the results
+        if data["schema_version"] != SubclusterDetectionResults.schema_version:
+            return None
+        
+        if data["rules_version"] != SubclusterDetectionResults.schema_version:
+            logging.warning("Rules version in previous results does not match current version.")
+
+        results = cls(record_id=data["record_id"], rules_version=data["rules_version"], hits_by_region={})
+        return results
+
+    def add_to_record(self, record):
+        if record.id != self.record_id:
+            raise ValueError("Record to store in and record analysed don't match")
+        # any results would be added here
+        # for an example of new features, see antismash.modules.tta
+        # for an example of qualifiers, see antismash.modules.t2pks
+        # any new feature types or qualifiers would be implemented in antismash.common.secmet,
+        #   and would need to be able to be converted to and from biopython's SeqFeature without loss
+        raise NotImplementedError()  # remove this when completed
 
 # @dataclass(frozen=True)
 # class SubclusterCompound:
