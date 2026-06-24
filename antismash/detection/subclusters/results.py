@@ -105,7 +105,32 @@ class SubclusterPrediction:
         self._compound = compound
         self._enriched = True
         return self
- 
+
+    def to_json(self) -> dict[str, Any]:
+        """Serialise the raw detection data for this prediction."""
+        return {
+            "rule_name": self.rule_name,
+            "start": self.start,
+            "end": self.end,
+            "cds_results": [cr.to_json() for cr in self.cds_results],
+        }
+
+    @classmethod
+    def from_json(cls, data: dict[str, Any], record: Record) -> Self:
+        """Reconstruct an un-enriched SubclusterPrediction from a serialised dict.
+
+        The returned prediction must be enriched by calling
+        ``enrich(rule, profiles, compounds)`` before its derived properties
+        can be accessed.
+        """
+        cds_results = [CDSResults.from_json(cr, record) for cr in data["cds_results"]]
+        return cls(
+            rule_name=data["rule_name"],
+            start=data["start"],
+            end=data["end"],
+            cds_results=cds_results,
+        )
+
     def _require_enriched(self) -> None:
         if not self._enriched:
             raise RuntimeError(
@@ -155,23 +180,24 @@ class SubclusterDetectionResults(DetectionResults):
     def to_json(self) -> dict[str, Any]:
         return {
             "schema_version": self.schema_version,
+            "record_id": self.record_id,
             "rules_version": self.rules_version,
-            "hits": [hit.to_dict() for hit in self.hits],
+            "hits": [hit.to_json() for hit in self.hits],
         }
 
     @classmethod
-    def from_json(cls, data: dict[str, Any]) -> Self:
-        # check that the previous data version is the same as current, if not, discard the results
-        if data["schema_version"] != SubclusterDetectionResults.schema_version:
-            return None
-        if data["rules_version"] != SubclusterDetectionResults.schema_version:
-            logging.warning("Rules version in previous results does not match current version.")
-
-        return cls(
-            record_id=data["record_id"], 
-            rules_version=data["rules_version"], 
-            hits=data["hits"]
+    def from_json(cls, data: dict[str, Any], record: Record) -> Optional[Self]:
+        if data.get("schema_version") != cls.schema_version:
+            logging.debug(
+                "Discarding subcluster results: schema version %s != %s",
+                data.get("schema_version"), cls.schema_version,
             )
+            return None
+        return cls(
+            record_id=data["record_id"],
+            rules_version=data["rules_version"],
+            hits=[SubclusterPrediction.from_json(hit_data, record) for hit_data in data["hits"]],
+        )
 
     def add_to_record(self, record):
         if record.id != self.record_id:
