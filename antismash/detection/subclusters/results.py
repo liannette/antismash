@@ -49,7 +49,7 @@ class SubclusterPrediction:
     _rule: Optional[DetectionRule] = field(default=None, init=False, repr=False)
     _conditions_str: str = field(default="", init=False, repr=False)
     _domain_hits: list[HmmHit] = field(default_factory=list, init=False, repr=False)
-    _compound: Optional[CompoundInfo] = field(default=None, init=False, repr=False)
+    _compound: CompoundInfo = field(default=None, init=False, repr=False)
     _enriched: bool = field(default=False, init=False, repr=False)
 
     @property
@@ -74,14 +74,14 @@ class SubclusterPrediction:
         return self._domain_hits
 
     @property
-    def compound(self) -> Optional[CompoundInfo]:
+    def compound(self) -> CompoundInfo:
         """Compound metadata, or ``None`` when metadata is unavailable."""
         self._require_enriched()
         return self._compound
 
     def enrich(self, rule: DetectionRule,
                profiles: dict[str, SubclusterHmmSignature],
-               compound: Optional[CompoundInfo]) -> Self:
+               compound: CompoundInfo) -> Self:
         """Populate derived fields from the fired rule and pre-loaded metadata.
 
         Arguments:
