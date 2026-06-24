@@ -3,6 +3,7 @@
 
 """Detection of subclusters
 """
+import logging 
 
 from typing import Any, Optional
 
@@ -57,13 +58,32 @@ def check_prereqs(_options: ConfigType) -> list[str]:
 
 
 def regenerate_previous_results(results: dict[str, Any], record: Record,
-                                _options: ConfigType) -> Optional[SubclusterDetectionResults]:
-    """ Regenerate previous results. 
-    """
+                                options: ConfigType) -> Optional[SubclusterDetectionResults]:
+    """Regenerate previous results."""
     if not results:
         return None
+    previous = SubclusterDetectionResults.from_json(results, record)
+    if previous is None:
+        return None
 
-    return SubclusterDetectionResults.from_json(results)
+    profiles = get_subcluster_profiles()
+    compounds = _load_compounds()
+    rule_by_name = {r.name: r for r in _build_ruleset(options).rules}
+
+    enriched = []
+    for hit in previous.hits:
+        if hit.rule_name not in rule_by_name:
+            logging.warning("Subcluster rule %r no longer exists; dropping cached result.", hit.rule_name)
+            continue
+        hit.enrich(rule_by_name[hit.rule_name], profiles, compounds.get(hit.rule_name))
+        enriched.append(hit)
+
+    previous.hits = enriched
+    return previous
+
+
+def _load_compounds():
+    raise NotImplementedError
 
 
 def run_on_record(record: Record, previous_results: Optional[SubclusterDetectionResults],
