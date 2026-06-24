@@ -199,7 +199,7 @@ class SubclusterDetectionResults(DetectionResults):
             hits=[SubclusterPrediction.from_json(hit_data, record) for hit_data in data["hits"]],
         )
 
-    def add_to_record(self, record):
+    def add_to_record(self, record: Record) -> None:
         if record.id != self.record_id:
             raise ValueError("Record to store in and record analysed don't match")
         # any results would be added here
