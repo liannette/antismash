@@ -79,6 +79,11 @@ class SubclusterPrediction:
         self._require_enriched()
         return self._compound
 
+    @property
+    def cds_locus_tags(self) -> list[str]:
+        """Sorted unique CDS locus tags that contributed to this prediction."""
+        return sorted({cr.cds.get_name() for cr in self.cds_results})
+
     def enrich(self, rule: DetectionRule,
                profiles: dict[str, SubclusterHmmSignature],
                compound: CompoundInfo) -> Self:
