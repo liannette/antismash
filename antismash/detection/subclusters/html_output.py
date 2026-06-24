@@ -30,8 +30,18 @@ def _get_fake_hits() -> list[SubclusterPrediction]:
         return SubclusterHmmSignature(name=name, description=description or "",
                                       cutoff=0, hmm_path="", accession=accession)
 
-    hit_a = SubclusterPrediction(rule_name="SCG0042", start=27326, end=80190, cds_results=[])
-    hit_a._rule = SimpleNamespace(conditions="cds(PDH_N and PDH_C) and Aminotran_1_2 and Glyoxalase and FMN_dh")
+    def _fake_cds_results(locus_tags: list[str]) -> list:
+        return [SimpleNamespace(cds=SimpleNamespace(get_name=lambda n=tag: n)) for tag in locus_tags]
+
+    hit_a = SubclusterPrediction(rule_name="SCG0042", start=27326, end=80190,
+                                 cds_results=_fake_cds_results([
+                                     "AJAP_32035", "AJAP_32036", "AJAP_32040",
+                                     "AJAP_32060", "AJAP_32155",
+                                 ]))
+    hit_a._rule = SimpleNamespace(
+        conditions="cds(PDH_N and PDH_C) and Aminotran_1_2 and Glyoxalase and FMN_dh",
+        description="4-Hydroxyphenylglycine (Hpg)",
+    )
     hit_a._domain_hits = [
         HmmHit(profile=_fake_profile("FMH_dh", "PF01070", "FMN-dependent dehydrogenase"), cds_locus_tag="AJAP_32035"),
         HmmHit(profile=_fake_profile("FMH_dh", "PF01070", "FMN-dependent dehydrogenase"), cds_locus_tag="AJAP_32036"),
