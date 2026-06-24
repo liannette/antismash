@@ -12,7 +12,8 @@ from antismash.config import ConfigType
 from antismash.config.args import ModuleArgs
 from antismash.detection import DetectionStage
 
-from .results import SubclusterDetectionResults, SubclusterHit
+from .results import SubclusterDetectionResults, SubclusterPrediction
+from .signatures import get_subcluster_profiles
 from .html_output import generate_html, will_handle, generate_javascript_data
 
 NAME = "subclusters"
@@ -74,7 +75,7 @@ def run_on_record(record: Record, previous_results: Optional[SubclusterDetection
     # # TODO: build ruleset from rule/HMM files
     # ruleset: Ruleset = _build_ruleset(options)
 
-    # hits: list[SubclusterHit] = [
+    # hits: list[SubclusterPrediction] = [
     #     hit.enrich(ruleset) for hit in _detect_hits(record, ruleset)
     # ]
 
@@ -93,7 +94,7 @@ def _build_ruleset(options: ConfigType) -> Ruleset:
     raise NotImplementedError
  
  
-def _detect_hits(record: Record, ruleset: Ruleset) -> list[SubclusterHit]:
+def _detect_hits(record: Record, ruleset: Ruleset) -> list[SubclusterPrediction]:
     """Run rule-based detection for one region.  Placeholder."""
     raise NotImplementedError
 
