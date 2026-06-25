@@ -60,26 +60,28 @@ def check_prereqs(_options: ConfigType) -> list[str]:
 def regenerate_previous_results(results: dict[str, Any], record: Record,
                                 options: ConfigType) -> Optional[SubclusterDetectionResults]:
     """Regenerate previous results."""
-    if not results:
-        return None
-    previous = SubclusterDetectionResults.from_json(results, record)
-    if previous is None:
-        return None
+    # if not results:
+    #     return None
+    # previous = SubclusterDetectionResults.from_json(results, record)
+    # if previous is None:
+    #     return None
 
-    profiles = get_subcluster_profiles()
-    compounds = _load_compounds()
-    rule_by_name = {r.name: r for r in _build_ruleset(options).rules}
+    # profiles = get_subcluster_profiles()
+    # compounds = _load_compounds()
+    # rule_by_name = {r.name: r for r in _build_ruleset(options).rules}
 
-    enriched = []
-    for hit in previous.hits:
-        if hit.rule_name not in rule_by_name:
-            logging.warning("Subcluster rule %r no longer exists; dropping cached result.", hit.rule_name)
-            continue
-        hit.enrich(rule_by_name[hit.rule_name], profiles, compounds.get(hit.rule_name))
-        enriched.append(hit)
+    # enriched = []
+    # for hit in previous.hits:
+    #     if hit.rule_name not in rule_by_name:
+    #         logging.warning("Subcluster rule %r no longer exists; dropping cached result.", hit.rule_name)
+    #         continue
+    #     hit.enrich(rule_by_name[hit.rule_name], profiles, compounds.get(hit.rule_name))
+    #     enriched.append(hit)
 
-    previous.hits = enriched
-    return previous
+    # previous.hits = enriched
+    # return previous
+    # TODO: implement once detection pipeline (hmmdetails.txt, rules, compounds) is in place
+    return None
 
 
 def _load_compounds():
