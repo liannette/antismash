@@ -110,7 +110,7 @@ def generate_javascript_data(record: Record, region: Region,
 
     return {
         "subcluster_predictions": [
-            {"identifier": f"subclusters-svg-r{anchor}-{i}",
+            {"identifier": f"subclusters-svg-{anchor}-sc{i}",
              "cds_names": hit.cds_names}
             for i, hit in enumerate(hits, start=1)
         ]
