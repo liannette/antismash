@@ -23,7 +23,7 @@ class CompoundInfo:
 class HmmHit:
     """A single profile match that contributed to a subcluster hit."""
     profile: SubclusterHmmSignature
-    cds_locus_tag: str
+    cds_name: str
 
 
 @dataclass
@@ -104,7 +104,7 @@ class SubclusterPrediction:
             for domain_name in sorted(cds_result.definition_domains.get(self.rule_name, set())):
                 hits.append(HmmHit(
                     profile=profiles[domain_name],
-                    cds_locus_tag=cds_result.cds.get_name(),
+                    cds_name=cds_result.cds.get_name(),
                 ))
         self._domain_hits = hits
         self._compound = compound

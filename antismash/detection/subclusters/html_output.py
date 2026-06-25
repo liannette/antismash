@@ -30,34 +30,56 @@ def _get_fake_hits() -> list[SubclusterPrediction]:
         return SubclusterHmmSignature(name=name, description=description or "",
                                       cutoff=0, hmm_path="", accession=accession)
 
-    def _fake_cds_results(locus_tags: list[str]) -> list:
-        return [SimpleNamespace(cds=SimpleNamespace(get_name=lambda n=tag: n)) for tag in locus_tags]
+    def _fake_cds_results(names: list[str]) -> list:
+        return [SimpleNamespace(cds=SimpleNamespace(get_name=lambda n=tag: n)) for tag in names]
 
-    hit_a = SubclusterPrediction(rule_name="SCG0042", start=27326, end=80190,
+    hit_a = SubclusterPrediction(rule_name="SCG0006", start=17346, end=21101,
                                  cds_results=_fake_cds_results([
-                                     "AJAP_32035", "AJAP_32036", "AJAP_32040",
-                                     "AJAP_32060", "AJAP_32155",
+                                     "AJAP_31990", "AJAP_31995", "AJAP_32000",
+                                     "AJAP_32005",
                                  ]))
     hit_a._rule = SimpleNamespace(
-        conditions="cds(PDH_N and PDH_C) and Aminotran_1_2 and Glyoxalase and FMN_dh",
-        description="4-Hydroxyphenylglycine (Hpg)",
+        conditions="ECH_1 and cds(Chal_sti_synt_C and Chal_sti_synt_N)",
+        description="3,5-Dihydroxyphenylglycine (Dhpg)",
     )
     hit_a._domain_hits = [
-        HmmHit(profile=_fake_profile("FMH_dh", "PF01070", "FMN-dependent dehydrogenase"), cds_locus_tag="AJAP_32035"),
-        HmmHit(profile=_fake_profile("FMH_dh", "PF01070", "FMN-dependent dehydrogenase"), cds_locus_tag="AJAP_32036"),
-        HmmHit(profile=_fake_profile("Glyoxylase", "PF00903", "Glyoxalase/Bleomycin resistance protein/Dioxygenase superfamily"), cds_locus_tag="AJAP_32040"),
-        HmmHit(profile=_fake_profile("Aminotran_1_2", "PF00155", "Aminotransferase class I and II"), cds_locus_tag="AJAP 32060"),
-        HmmHit(profile=_fake_profile("PDH_N", "PF02153", "Prephenate dehydrogenase, nucleotide-binding domain"), cds_locus_tag="AJAP_32155"),
-        HmmHit(profile=_fake_profile("PDH_C", "PF00903", "Prephenate dehydrogenase, dimerization domain"), cds_locus_tag="AJAP_32155"),
+        HmmHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_locus_tag="AJAP_31990"),
+        HmmHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_locus_tag="AJAP_31995"),
+        HmmHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_locus_tag="AJAP_32000"),
+        HmmHit(profile=_fake_profile("Chal_sti_synt_N", "PF00195", "Chalcone and stilbene synthases, N-terminal domain"), cds_locus_tag="AJAP_32005"),
+        HmmHit(profile=_fake_profile("Chal_sti_synt_C", "PF02797", "Chalcone and stilbene synthases, C-terminal domain"), cds_locus_tag="AJAP_32005"),
     ]
     hit_a._compound = CompoundInfo(
-        name="4-Hydroxyphenylglycine (Hpg)",
-        smiles="C1=CC(=CC=C1C(C(=O)O)N)O",
+        name="3,5-Dihydroxyphenylglycine (Dhpg)",
+        smiles="C1=C(O)C=C(O)C=C1[C@@H](C(=O)O)N",
         classification=["amino acid", "precursor"],
     )
     hit_a._enriched = True
 
-    return [hit_a,]
+    hit_b = SubclusterPrediction(rule_name="SCG0042", start=27326, end=80190,
+                                 cds_results=_fake_cds_results([
+                                     "AJAP_32035", "AJAP_32036", "AJAP_32040",
+                                     "AJAP_32060", "AJAP_32155",
+                                 ]))
+    hit_b._rule = SimpleNamespace(
+        conditions="cds(PDH_N and PDH_C) and Aminotran_1_2 and Glyoxalase and FMN_dh",
+        description="4-Hydroxyphenylglycine (Hpg)",
+    )
+    hit_b._domain_hits = [
+        HmmHit(profile=_fake_profile("FMH_dh", "PF01070", "FMN-dependent dehydrogenase"), cds_locus_tag="AJAP_32035"),
+        HmmHit(profile=_fake_profile("Glyoxylase", "PF00903", "Glyoxalase/Bleomycin resistance protein/Dioxygenase superfamily"), cds_locus_tag="AJAP_32040"),
+        HmmHit(profile=_fake_profile("Aminotran_1_2", "PF00155", "Aminotransferase class I and II"), cds_locus_tag="AJAP_32060"),
+        HmmHit(profile=_fake_profile("PDH_N", "PF02153", "Prephenate dehydrogenase, nucleotide-binding domain"), cds_locus_tag="AJAP_32155"),
+        HmmHit(profile=_fake_profile("PDH_C", "PF00903", "Prephenate dehydrogenase, dimerization domain"), cds_locus_tag="AJAP_32155"),
+    ]
+    hit_b._compound = CompoundInfo(
+        name="4-Hydroxyphenylglycine (Hpg)",
+        smiles="C1=CC(=CC=C1C(C(=O)O)N)O",
+        classification=["amino acid", "precursor"],
+    )
+    hit_b._enriched = True
+
+    return [hit_a, hit_b]
 
 
 def generate_html(region_layer: RegionLayer, results: Optional[SubclusterDetectionResults],

@@ -18,7 +18,7 @@
                 {% for profile_name, dhs in hit.domain_hits | groupby("profile.name") %}
                 <tr>
                   <td><code>{{ dhs[0].profile.name }}</code></td>
-                  <td>{% for dh in dhs %}{{ cds_selector_span(dh.cds_locus_tag) }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+                  <td>{% for dh in dhs %}{{ cds_selector_span(dh.cds_name) }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
                   <td>{{ dhs[0].profile.description or "—" }}{% if dhs[0].profile.accession %} ({{ dhs[0].profile.accession }}){% endif %}</td>
                 </tr>
                 {% endfor %}
