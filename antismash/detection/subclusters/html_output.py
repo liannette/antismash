@@ -43,11 +43,11 @@ def _get_fake_hits() -> list[SubclusterPrediction]:
         description="3,5-Dihydroxyphenylglycine (Dhpg)",
     )
     hit_a._domain_hits = [
-        HmmHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_locus_tag="AJAP_31990"),
-        HmmHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_locus_tag="AJAP_31995"),
-        HmmHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_locus_tag="AJAP_32000"),
-        HmmHit(profile=_fake_profile("Chal_sti_synt_N", "PF00195", "Chalcone and stilbene synthases, N-terminal domain"), cds_locus_tag="AJAP_32005"),
-        HmmHit(profile=_fake_profile("Chal_sti_synt_C", "PF02797", "Chalcone and stilbene synthases, C-terminal domain"), cds_locus_tag="AJAP_32005"),
+        HmmHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_name="AJAP_31990"),
+        HmmHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_name="AJAP_31995"),
+        HmmHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_name="AJAP_32000"),
+        HmmHit(profile=_fake_profile("Chal_sti_synt_N", "PF00195", "Chalcone and stilbene synthases, N-terminal domain"), cds_name="AJAP_32005"),
+        HmmHit(profile=_fake_profile("Chal_sti_synt_C", "PF02797", "Chalcone and stilbene synthases, C-terminal domain"), cds_name="AJAP_32005"),
     ]
     hit_a._compound = CompoundInfo(
         name="3,5-Dihydroxyphenylglycine (Dhpg)",
@@ -66,11 +66,11 @@ def _get_fake_hits() -> list[SubclusterPrediction]:
         description="4-Hydroxyphenylglycine (Hpg)",
     )
     hit_b._domain_hits = [
-        HmmHit(profile=_fake_profile("FMH_dh", "PF01070", "FMN-dependent dehydrogenase"), cds_locus_tag="AJAP_32035"),
-        HmmHit(profile=_fake_profile("Glyoxylase", "PF00903", "Glyoxalase/Bleomycin resistance protein/Dioxygenase superfamily"), cds_locus_tag="AJAP_32040"),
-        HmmHit(profile=_fake_profile("Aminotran_1_2", "PF00155", "Aminotransferase class I and II"), cds_locus_tag="AJAP_32060"),
-        HmmHit(profile=_fake_profile("PDH_N", "PF02153", "Prephenate dehydrogenase, nucleotide-binding domain"), cds_locus_tag="AJAP_32155"),
-        HmmHit(profile=_fake_profile("PDH_C", "PF00903", "Prephenate dehydrogenase, dimerization domain"), cds_locus_tag="AJAP_32155"),
+        HmmHit(profile=_fake_profile("FMH_dh", "PF01070", "FMN-dependent dehydrogenase"), cds_name="AJAP_32035"),
+        HmmHit(profile=_fake_profile("Glyoxylase", "PF00903", "Glyoxalase/Bleomycin resistance protein/Dioxygenase superfamily"), cds_name="AJAP_32040"),
+        HmmHit(profile=_fake_profile("Aminotran_1_2", "PF00155", "Aminotransferase class I and II"), cds_name="AJAP_32060"),
+        HmmHit(profile=_fake_profile("PDH_N", "PF02153", "Prephenate dehydrogenase, nucleotide-binding domain"), cds_name="AJAP_32155"),
+        HmmHit(profile=_fake_profile("PDH_C", "PF00903", "Prephenate dehydrogenase, dimerization domain"), cds_name="AJAP_32155"),
     ]
     hit_b._compound = CompoundInfo(
         name="4-Hydroxyphenylglycine (Hpg)",
