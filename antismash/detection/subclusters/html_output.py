@@ -106,7 +106,7 @@ def generate_html(region_layer: RegionLayer, results: Optional[SubclusterDetecti
 def generate_javascript_data(record: Record, region: Region,
                                 results: SubclusterDetectionResults) -> JSONBase:
     hits = _get_fake_hits()
-    anchor = f"{record.index}c{region.get_region_number()}"
+    anchor = f"r{record.record_index}c{region.get_region_number()}"
 
     return {
         "subcluster_predictions": [
