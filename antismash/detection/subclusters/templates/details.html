@@ -5,27 +5,30 @@
   {% if enum_hits %}
     {% for i, hit in enum_hits %}
     <div class="subcluster-prediction">
-      <span class="subcluster-rule-name">{{ hit.rule_name }}</span>:
-      <span class="subcluster-rule-description">{{ hit.rule.description }}</span>
-      {{ collapser_start(target="subcluster-" ~ hit.rule_name ~ "-" ~ i, level="cds") }}
+      <div class="subcluster-header">
+        <span class="subcluster-rule-name">{{ hit.rule_name }}</span>
+        <span class="subcluster-compound-name">{{ hit.compound.name }}</span>
+        <span class="subcluster-compound-class"><i>{{ hit.compound.classification | join(", ") }}</i></span>
+      </div>
+      {{ collapser_start(target="subcluster_prediction-%s" % i, level="none") }}
         <div class="subcluster-collapser-inner">
-          <div class="subcluster-collapser-left">
-            <div><b>Compound class:</b> {{ hit.compound.classification | join(", ") }}</div>
-            <div><b>pHMM detection rule:</b> {{ hit.conditions_str }}</div>
+          <canvas id="smiles-canvas-{{ anchor }}-sc{{ i }}" class="smiles-canvas" data-smiles="{{ hit.compound.smiles }}" width="100" height="100"></canvas>
+          <div class="subcluster-detection-details">
+            <a class="cluster-rules-header" id="subcluster-{{ anchor }}-sc{{ i }}-rules-header" href="#">Show pHMM detection rule</a>
+            <div class="cluster-rules" id="subcluster-{{ anchor }}-sc{{ i }}-rules">{{ hit.conditions_str }}</div>
             <table class="subcluster-domain-table">
-              <thead><tr><th>Profile</th><th>CDS</th><th>Description</th></tr></thead>
+              <thead><tr><th>Profile</th><th>Description</th><th>CDS</th></tr></thead>
               <tbody>
                 {% for profile_name, dhs in hit.domain_hits | groupby("profile.name") %}
                 <tr>
                   <td><code>{{ dhs[0].profile.name }}</code></td>
-                  <td>{% for dh in dhs %}{{ cds_selector_span(dh.cds_name) }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
                   <td>{{ dhs[0].profile.description or "—" }}{% if dhs[0].profile.accession %} ({{ dhs[0].profile.accession }}){% endif %}</td>
+                  <td>{% for dh in dhs %}{{ cds_selector_span(dh.cds_name) }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
-          <canvas id="smiles-canvas-{{ anchor }}-sc{{ i }}" class="smiles-canvas" data-smiles="{{ hit.compound.smiles }}" width="250" height="200"></canvas>
         </div>
       {{ collapser_end() }}
       <div id="subclusters-svg-{{ anchor }}-sc{{ i }}" class="subclusters-svg"></div>
