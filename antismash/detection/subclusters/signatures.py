@@ -10,8 +10,8 @@ class SubclusterHmmSignature(HmmSignature):
     """An HMM signature extended with an optional Pfam accession."""
 
     def __init__(self, name: str, description: str, cutoff: int,
-                 hmm_path: str, accession: Optional[str] = None,
-                 seed_count: int = 0) -> None:
+                 hmm_path: str, seed_count: int = 0, *,
+                 accession: Optional[str] = None) -> None:
         super().__init__(name, description, cutoff, hmm_path, seed_count)
         self.accession = accession
 
