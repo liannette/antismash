@@ -2,12 +2,12 @@
   <div class="heading">
     <span>Subclusters</span> {{ help_tooltip(tooltip, "subcluster-body") }}
   </div>
-  {% if hits %}
-    {% for hit in hits %}
+  {% if enum_hits %}
+    {% for i, hit in enum_hits %}
     <div class="subcluster-prediction">
       <span class="subcluster-rule-name">{{ hit.rule_name }}</span>:
       <span class="subcluster-rule-description">{{ hit.rule.description }}</span>
-      {{ collapser_start(target="subcluster-" ~ hit.rule_name ~ "-" ~ loop.index, level="cds") }}
+      {{ collapser_start(target="subcluster-" ~ hit.rule_name ~ "-" ~ i, level="cds") }}
         <div class="subcluster-collapser-inner">
           <div class="subcluster-collapser-left">
             <div><b>Compound class:</b> {{ hit.compound.classification | join(", ") }}</div>
@@ -25,10 +25,10 @@
               </tbody>
             </table>
           </div>
-          <canvas id="smiles-canvas-r1c1-sc1" class="smiles-canvas" data-smiles="{{hit.compound.smiles}}" width="250" height="200"></canvas>
+          <canvas id="smiles-canvas-{{ anchor }}-sc{{ i }}" class="smiles-canvas" data-smiles="{{ hit.compound.smiles }}" width="250" height="200"></canvas>
         </div>
       {{ collapser_end() }}
-      <div id="subclusters-svg-sdffdsg-somethingsubcluster" class="subclusters-svg"></div>
+      <div id="subclusters-svg-{{ anchor }}-sc{{ i }}" class="subclusters-svg"></div>
     </div>
     {% endfor %}
   {% else %}

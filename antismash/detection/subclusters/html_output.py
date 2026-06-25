@@ -89,12 +89,14 @@ def generate_html(region_layer: RegionLayer, results: Optional[SubclusterDetecti
     #     hits = results.get_hits_for_region(region_layer.region_feature)
     # else:
     #     hits = []
+
     hits = _get_fake_hits()
+    enum_hits = list(enumerate(hits, start=1))
 
     tooltip = Markup("Subclusters are sets of genes responsible for producing a specific chemical moiety.")
 
     template = FileTemplate(path.get_full_path(__file__, "templates", "details.html"))
-    section = template.render(hits=hits, tooltip=tooltip)
+    section = template.render(enum_hits=enum_hits, tooltip=tooltip, anchor=region_layer.anchor_id)
 
     html = HTMLSections(name="subclusters")
     html.add_detail_section("Subclusters", section, class_name="subclusters")
@@ -103,5 +105,13 @@ def generate_html(region_layer: RegionLayer, results: Optional[SubclusterDetecti
 
 def generate_javascript_data(record: Record, region: Region,
                                 results: SubclusterDetectionResults) -> JSONBase:
-    # return some fake data
-    return {}
+    hits = _get_fake_hits()
+    anchor = f"{record.index}c{region.get_region_number()}"
+
+    return {
+        "subcluster_predictions": [
+            {"identifier": f"subclusters-svg-r{anchor}-{i}",
+             "cds_names": hit.cds_names}
+            for i, hit in enumerate(hits, start=1)
+        ]
+    }
