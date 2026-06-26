@@ -1872,14 +1872,32 @@ ul.dropdown-options {
 }
 
 .subcluster-details {
+    .subcluster-prediction {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+
+        .collapser {
+            order: -1;
+            margin-right: 1em;
+        }
+
+        .collapser-content,
+        .subclusters-svg {
+            width: 100%;
+        }
+    }
+
     .header {
-        display: inline-flex;
+        flex: 1;
+        display: flex;
         gap: 3em;
         align-items: baseline;
         margin-bottom: 0.3em;
         margin-right: 1.5em;
 
         .rule-name {
+            margin-left: auto;
             font-family: "Courier New", serif;
             font-weight: bold;
         }

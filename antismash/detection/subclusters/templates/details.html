@@ -6,9 +6,9 @@
     {% for i, hit in enum_hits %}
     <div class="subcluster-prediction" id="{{ anchor }}-sc{{ i }}">
       <div class="header">
-        <span class="rule-name">{{ hit.rule_name }}</span>
         <span class="compound-name">{{ hit.compound.name }}</span>
         <span class="compound-class">{{ hit.compound.classification | join(", ") }}</span>
+        <span class="rule-name">{{ hit.rule_name }}</span>
       </div>
       {{ collapser_start(target="subcluster_prediction-%s" % i, level="none") }}
         <div class="collapser-inner">
