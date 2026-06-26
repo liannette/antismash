@@ -28,7 +28,7 @@ class HmmHit:
 
 @dataclass
 class SubclusterPrediction:
-    """A single detected subcluster.
+    """A single predicted subcluster.
 
     After detection, call ``enrich(rule, profiles, compounds)`` once to populate
     the derived fields used by the HTML template.
@@ -101,7 +101,8 @@ class SubclusterPrediction:
 
         hits: list[HmmHit] = []
         for cds_result in self.cds_results:
-            for domain_name in sorted(cds_result.definition_domains.get(self.rule_name, set())):
+            fired = cds_result.definition_domains.get(self.rule_name, set())
+            for domain_name in sorted(fired):
                 hits.append(HmmHit(
                     profile=profiles[domain_name],
                     cds_name=cds_result.cds.get_name(),
