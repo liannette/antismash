@@ -3,8 +3,6 @@
 
 """Detection of subclusters
 """
-import logging 
-
 from typing import Any, Optional
 
 from antismash.common.hmm_rule_parser.cluster_prediction import Ruleset
@@ -105,7 +103,6 @@ def run_on_record(record: Record, previous_results: Optional[SubclusterDetection
     # )
 
     return SubclusterDetectionResults(record.id, "ruleset_version_placeholder", [])  # placeholder until real detection is implemented
-
 
 
 def _build_ruleset(options: ConfigType) -> Ruleset:
