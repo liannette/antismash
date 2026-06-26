@@ -6,7 +6,7 @@ from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
 from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults
 from antismash.common.module_results import DetectionResults
 from antismash.common.secmet import Record, Region
-from antismash.common.secmet.locations import FeatureLocation
+from antismash.common.secmet.locations import FeatureLocation, location_contains_other
 
 from .signatures import SubclusterHmmSignature
 
@@ -167,18 +167,18 @@ class SubclusterDetectionResults(DetectionResults):
         self.hits = hits
 
     def get_hits_for_region(self, region: Region) -> list[SubclusterPrediction]:
-        """Return all hits that overlap the given region."""
+        """Return all hits fully contained within the given region."""
         return [
             hit for hit in self.hits
-            if region.overlaps_with(FeatureLocation(hit.start, hit.end))
+            if location_contains_other(region.location, FeatureLocation(hit.start, hit.end))
         ]
 
     def get_hits_outside_regions(self, record: Record) -> list[SubclusterPrediction]:
-        """Return hits that do not overlap any region in the record."""
+        """Return hits not fully contained by any region in the record."""
         return [
             hit for hit in self.hits
             if not any(
-                region.overlaps_with(FeatureLocation(hit.start, hit.end))
+                location_contains_other(region.location, FeatureLocation(hit.start, hit.end))
                 for region in record.get_regions()
             )
         ]
