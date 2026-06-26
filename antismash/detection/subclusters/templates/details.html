@@ -12,17 +12,18 @@
       </div>
       {{ collapser_start(target="subcluster_prediction-%s" % i, level="none") }}
         <div class="subcluster-collapser-inner">
-          <canvas id="smiles-canvas-{{ anchor }}-sc{{ i }}" class="smiles-canvas" data-smiles="{{ hit.compound.smiles }}" width="100" height="100"></canvas>
+          <canvas id="smiles-canvas-{{ anchor }}-sc{{ i }}" class="smiles-canvas" data-smiles="{{ hit.compound.smiles }}" data-smiles-width="150" data-smiles-height="150"></canvas>
           <div class="subcluster-detection-details">
             <a class="cluster-rules-header" id="subcluster-{{ anchor }}-sc{{ i }}-rules-header" href="#">Show pHMM detection rule</a>
             <div class="cluster-rules" id="subcluster-{{ anchor }}-sc{{ i }}-rules">{{ hit.conditions_str }}</div>
             <table class="subcluster-domain-table">
-              <thead><tr><th>Profile</th><th>Description</th><th>CDS</th></tr></thead>
+              <thead><tr><th>Domain</th><th>Accession</th><th>Description</th><th>Detected in</th></tr></thead>
               <tbody>
                 {% for profile_name, dhs in hit.domain_hits | groupby("profile.name") %}
                 <tr>
                   <td><code>{{ dhs[0].profile.name }}</code></td>
-                  <td>{{ dhs[0].profile.description or "—" }}{% if dhs[0].profile.accession %} ({{ dhs[0].profile.accession }}){% endif %}</td>
+                  <td>{% if dhs[0].profile.accession %}<code>{{ dhs[0].profile.accession }}</code>{% else %}—{% endif %}</td>
+                  <td>{{ dhs[0].profile.description or "—" }}</td>
                   <td>{% for dh in dhs %}{{ cds_selector_span(dh.cds_name) }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
                 </tr>
                 {% endfor %}
