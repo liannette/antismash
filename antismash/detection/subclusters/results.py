@@ -8,15 +8,8 @@ from antismash.common.module_results import DetectionResults
 from antismash.common.secmet import Record, Region
 from antismash.common.secmet.locations import FeatureLocation, location_contains_other
 
+from .compounds import CompoundInfo
 from .signatures import SubclusterHmmSignature
-
-
-@dataclass(frozen=True)
-class CompoundInfo:
-    """Compound information for a subcluster."""
-    name: str
-    smiles: Optional[str]
-    classification: list[str]
 
 
 @dataclass(frozen=True)
@@ -75,7 +68,7 @@ class SubclusterPrediction:
 
     @property
     def compound(self) -> CompoundInfo:
-        """Compound metadata, or ``None`` when metadata is unavailable."""
+        """Compound metadata."""
         self._require_enriched()
         return self._compound
 

@@ -10,7 +10,8 @@ from antismash.common.json import JSONBase
 from antismash.common.secmet import Record, Region
 from antismash.config import ConfigType
 
-from .results import CompoundInfo, HmmHit, SubclusterDetectionResults, SubclusterPrediction
+from .compounds import CompoundInfo
+from .results import HmmHit, SubclusterDetectionResults, SubclusterPrediction
 from .signatures import SubclusterHmmSignature
 
 
