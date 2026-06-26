@@ -13,10 +13,12 @@ from .signatures import SubclusterHmmSignature
 
 
 @dataclass(frozen=True)
-class HmmHit:
+class DomainHit:
     """A single profile match that contributed to a subcluster hit."""
     profile: SubclusterHmmSignature
     cds_name: str
+    evalue: float
+    bitscore: float
 
 
 @dataclass
@@ -41,7 +43,7 @@ class SubclusterPrediction:
     # Derived fields — populated by enrich(); not part of __init__
     _rule: Optional[DetectionRule] = field(default=None, init=False, repr=False)
     _conditions_str: str = field(default="", init=False, repr=False)
-    _domain_hits: list[HmmHit] = field(default_factory=list, init=False, repr=False)
+    _domain_hits: list[DomainHit] = field(default_factory=list, init=False, repr=False)
     _compound: CompoundInfo = field(default=None, init=False, repr=False)
     _enriched: bool = field(default=False, init=False, repr=False)
 
@@ -61,7 +63,7 @@ class SubclusterPrediction:
         return text
 
     @property
-    def domain_hits(self) -> list[HmmHit]:
+    def domain_hits(self) -> list[DomainHit]:
         """Domain hits that fired for this subcluster, in deterministic order."""
         self._require_enriched()
         return self._domain_hits
@@ -92,13 +94,20 @@ class SubclusterPrediction:
         """
         self._rule = rule
 
-        hits: list[HmmHit] = []
+        # Note: AA location (query_start/query_end) is not available here.
+        # HMMerHit carries it, but it is discarded when converted to SecMetQualifier.Domain
+        # in hmm_rule_parser/cluster_prediction.py. A fix there would be needed to expose it.
+        hits: list[DomainHit] = []
         for cds_result in self.cds_results:
             fired = cds_result.definition_domains.get(self.rule_name, set())
             for domain_name in sorted(fired):
-                hits.append(HmmHit(
+                matching = [d for d in cds_result.domains if d.name == domain_name]
+                best = max(matching, key=lambda d: d.bitscore) if matching else None
+                hits.append(DomainHit(
                     profile=profiles[domain_name],
                     cds_name=cds_result.cds.get_name(),
+                    evalue=best.evalue if best else None,
+                    bitscore=best.bitscore if best else None,
                 ))
         self._domain_hits = hits
         self._compound = compound

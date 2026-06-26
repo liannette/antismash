@@ -1,7 +1,8 @@
 """Manages HTML construction for the subcluster detection module."""
 
 from types import SimpleNamespace
-from typing import Optional
+from collections import defaultdict
+from typing import Optional, TypedDict
 
 from antismash.common import path
 from antismash.common.html_renderer import FileTemplate, HTMLSections, Markup
@@ -11,7 +12,7 @@ from antismash.common.secmet import Record, Region
 from antismash.config import ConfigType
 
 from .compounds import CompoundInfo
-from .results import HmmHit, SubclusterDetectionResults, SubclusterPrediction
+from .results import DomainHit, SubclusterDetectionResults, SubclusterPrediction
 from .signatures import SubclusterHmmSignature
 
 
@@ -44,11 +45,11 @@ def _get_fake_hits() -> list[SubclusterPrediction]:
         description="3,5-Dihydroxyphenylglycine (Dhpg)",
     )
     hit_a._domain_hits = [
-        HmmHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_name="AJAP_31990"),
-        HmmHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_name="AJAP_31995"),
-        HmmHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_name="AJAP_32000"),
-        HmmHit(profile=_fake_profile("Chal_sti_synt_N", "PF00195", "Chalcone and stilbene synthases, N-terminal domain"), cds_name="AJAP_32005"),
-        HmmHit(profile=_fake_profile("Chal_sti_synt_C", "PF02797", "Chalcone and stilbene synthases, C-terminal domain"), cds_name="AJAP_32005"),
+        DomainHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_name="AJAP_31990", evalue=1.2e-18, bitscore=65.3),
+        DomainHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_name="AJAP_31995", evalue=3.4e-21, bitscore=72.1),
+        DomainHit(profile=_fake_profile("ECH_1", "PF00378", "Enoyl-CoA hydratase/isomerase"), cds_name="AJAP_32000", evalue=8.7e-20, bitscore=68.9),
+        DomainHit(profile=_fake_profile("Chal_sti_synt_N", "PF00195", "Chalcone and stilbene synthases, N-terminal domain"), cds_name="AJAP_32005", evalue=2.1e-45, bitscore=152.4),
+        DomainHit(profile=_fake_profile("Chal_sti_synt_C", "PF02797", "Chalcone and stilbene synthases, C-terminal domain"), cds_name="AJAP_32005", evalue=5.8e-34, bitscore=118.1),
     ]
     hit_a._compound = CompoundInfo(
         name="3,5-Dihydroxyphenylglycine (Dhpg)",
@@ -67,11 +68,11 @@ def _get_fake_hits() -> list[SubclusterPrediction]:
         description="4-Hydroxyphenylglycine (Hpg)",
     )
     hit_b._domain_hits = [
-        HmmHit(profile=_fake_profile("FMH_dh", "PF01070", "FMN-dependent dehydrogenase"), cds_name="AJAP_32035"),
-        HmmHit(profile=_fake_profile("Glyoxylase", "PF00903", "Glyoxalase/Bleomycin resistance protein/Dioxygenase superfamily"), cds_name="AJAP_32040"),
-        HmmHit(profile=_fake_profile("Aminotran_1_2", "PF00155", "Aminotransferase class I and II"), cds_name="AJAP_32060"),
-        HmmHit(profile=_fake_profile("PDH_N", "PF02153", "Prephenate dehydrogenase, nucleotide-binding domain"), cds_name="AJAP_32155"),
-        HmmHit(profile=_fake_profile("PDH_C", "PF00903", "Prephenate dehydrogenase, dimerization domain"), cds_name="AJAP_32155"),
+        DomainHit(profile=_fake_profile("FMH_dh", "PF01070", "FMN-dependent dehydrogenase"), cds_name="AJAP_32035", evalue=4.1e-29, bitscore=98.7),
+        DomainHit(profile=_fake_profile("Glyoxylase", "PF00903", "Glyoxalase/Bleomycin resistance protein/Dioxygenase superfamily"), cds_name="AJAP_32040", evalue=7.3e-15, bitscore=54.2),
+        DomainHit(profile=_fake_profile("Aminotran_1_2", "PF00155", "Aminotransferase class I and II"), cds_name="AJAP_32060", evalue=9.6e-38, bitscore=128.5),
+        DomainHit(profile=_fake_profile("PDH_N", "PF02153", "Prephenate dehydrogenase, nucleotide-binding domain"), cds_name="AJAP_32155", evalue=1.4e-22, bitscore=78.3),
+        DomainHit(profile=_fake_profile("PDH_C", "PF00903", "Prephenate dehydrogenase, dimerization domain"), cds_name="AJAP_32155", evalue=6.2e-17, bitscore=60.1),
     ]
     hit_b._compound = CompoundInfo(
         name="4-Hydroxyphenylglycine (Hpg)",
@@ -104,15 +105,33 @@ def generate_html(region_layer: RegionLayer, results: Optional[SubclusterDetecti
     return html
 
 
+class _DomainHitJS(TypedDict):
+    name: str
+    description: Optional[str]
+    accession: Optional[str]
+    evalue: float
+    bitscore: float
+
+
 def generate_javascript_data(record: Record, region: Region,
-                                results: SubclusterDetectionResults) -> JSONBase:
-    hits = _get_fake_hits()
+                             results: SubclusterDetectionResults) -> JSONBase:
     anchor = f"r{record.record_index}c{region.get_region_number()}"
 
-    return {
-        "subcluster_predictions": [
-            {"identifier": f"subclusters-svg-{anchor}-sc{i}",
-             "cds_names": hit.cds_names}
-            for i, hit in enumerate(hits, start=1)
-        ]
-    }
+    hits = _get_fake_hits()
+    predictions = []
+    for i, hit in enumerate(hits, start=1):
+        cdses: dict[str, list[_DomainHitJS]] = defaultdict(list)
+        for dh in hit.domain_hits:
+            cdses[dh.cds_name].append(_DomainHitJS(
+                name=dh.profile.name,
+                description=dh.profile.description,
+                accession=dh.profile.accession,
+                evalue=dh.evalue,
+                bitscore=dh.bitscore,
+            ))
+        predictions.append({
+            "identifier": f"subclusters-svg-{anchor}-sc{i}",
+            "cdses": dict(cdses),
+        })
+
+    return {"subcluster_predictions": predictions}
