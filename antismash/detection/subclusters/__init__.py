@@ -13,6 +13,7 @@ from antismash.config import ConfigType
 from antismash.config.args import ModuleArgs
 from antismash.detection import DetectionStage
 
+from .compounds import get_subcluster_compounds
 from .results import SubclusterDetectionResults, SubclusterPrediction
 from .signatures import get_subcluster_profiles
 from .html_output import generate_html, will_handle, generate_javascript_data
@@ -67,7 +68,7 @@ def regenerate_previous_results(results: dict[str, Any], record: Record,
     #     return None
 
     # profiles = get_subcluster_profiles()
-    # compounds = _load_compounds()
+    # compounds = get_subcluster_compounds()
     # rule_by_name = {r.name: r for r in _build_ruleset(options).rules}
 
     # enriched = []
@@ -82,10 +83,6 @@ def regenerate_previous_results(results: dict[str, Any], record: Record,
     # return previous
     # TODO: implement once detection pipeline (hmmdetails.txt, rules, compounds) is in place
     return None
-
-
-def _load_compounds():
-    raise NotImplementedError
 
 
 def run_on_record(record: Record, previous_results: Optional[SubclusterDetectionResults],
