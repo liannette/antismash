@@ -1870,3 +1870,92 @@ ul.dropdown-options {
         }
     }
 }
+
+.subcluster-details {
+    .header {
+        display: inline-flex;
+        gap: 3em;
+        align-items: baseline;
+        margin-bottom: 0.3em;
+        margin-right: 1.5em;
+
+        .rule-name {
+            font-family: "Courier New", serif;
+            font-weight: bold;
+        }
+
+        .compound-class {
+            font-style: italic;
+        }
+    }
+
+    .collapser-content {
+        background-color: #f3f3f3;
+        padding: 0.5em 1em;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        margin-left: 1.5em;
+        margin-right: 1.5em;
+    }
+
+    .collapser-inner {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .smiles-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3em;
+    }
+
+    .smiles-copy-btn {
+        font-size: 75%;
+        padding: 0.1em 0.5em;
+        cursor: pointer;
+        background: none;
+        border: none;
+        color: #555;
+        text-decoration: underline dotted;
+
+        &:hover {
+            color: black;
+        }
+    }
+
+    .detection-details {
+        flex: 1 1 min-content;
+    }
+
+    .domain-table {
+        margin-top: 0.5em;
+        font-size: 80%;
+
+        * th, * td {
+            padding: 0.2em 0.8em;
+        }
+
+        tbody tr {
+            &:first-of-type {
+                border-top: 2px solid #444;
+            }
+
+            &:nth-of-type(odd) {
+                background-color: #ffffff;
+            }
+        }
+    }
+
+    .subclusters-svg {
+        width: calc(100% - 3em);
+        height: 1.5em;
+        background-color: #fffacd;
+        border: 1px dashed #ccc;
+        margin-left: 1.5em;
+        margin-right: 1.5em;
+        margin-top: 0.1em;
+        margin-bottom: 1em;
+    }
+}

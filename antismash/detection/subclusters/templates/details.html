@@ -1,22 +1,25 @@
 <div class="details subcluster-details">
   <div class="heading">
-    <span>Subclusters</span> {{ help_tooltip(tooltip, "subcluster-body") }}
+    <span>Subcluster Predictions</span> {{ help_tooltip(tooltip, "subcluster-body") }}
   </div>
   {% if enum_hits %}
     {% for i, hit in enum_hits %}
-    <div class="subcluster-prediction">
-      <div class="subcluster-header">
-        <span class="subcluster-rule-name">{{ hit.rule_name }}</span>
-        <span class="subcluster-compound-name">{{ hit.compound.name }}</span>
-        <span class="subcluster-compound-class"><i>{{ hit.compound.classification | join(", ") }}</i></span>
+    <div class="subcluster-prediction" id="{{ anchor }}-sc{{ i }}">
+      <div class="header">
+        <span class="rule-name">{{ hit.rule_name }}</span>
+        <span class="compound-name">{{ hit.compound.name }}</span>
+        <span class="compound-class">{{ hit.compound.classification | join(", ") }}</span>
       </div>
       {{ collapser_start(target="subcluster_prediction-%s" % i, level="none") }}
-        <div class="subcluster-collapser-inner">
-          <canvas id="smiles-canvas-{{ anchor }}-sc{{ i }}" class="smiles-canvas" data-smiles="{{ hit.compound.smiles }}" data-smiles-width="150" data-smiles-height="150"></canvas>
-          <div class="subcluster-detection-details">
-            <a class="cluster-rules-header" id="subcluster-{{ anchor }}-sc{{ i }}-rules-header" href="#">Show pHMM detection rule</a>
-            <div class="cluster-rules" id="subcluster-{{ anchor }}-sc{{ i }}-rules">{{ hit.conditions_str }}</div>
-            <table class="subcluster-domain-table">
+        <div class="collapser-inner">
+          <div class="smiles-wrap">
+            <canvas id="smiles-canvas-{{ anchor }}-sc{{ i }}" class="smiles-canvas" data-smiles="{{ hit.compound.smiles }}" width="150" height="150"></canvas>
+            <button class="smiles-copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('smiles-canvas-{{ anchor }}-sc{{ i }}').dataset.smiles)">Copy SMILES</button>
+          </div>
+          <div class="detection-details">
+            <a class="cluster-rules-header" id="{{ anchor }}-sc{{ i }}-rules-header" href="#">Show pHMM detection rule</a>
+            <div class="cluster-rules" id="{{ anchor }}-sc{{ i }}-rules">{{ hit.conditions_str }}</div>
+            <table class="domain-table">
               <thead><tr><th>Domain</th><th>Accession</th><th>Description</th><th>Detected in</th></tr></thead>
               <tbody>
                 {% for profile_name, dhs in hit.domain_hits | groupby("profile.name") %}
