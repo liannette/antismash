@@ -1,0 +1,2 @@
+# rule_name	compound_name	smiles	classification (semicolon-separated)
+SCG0042	4-Hydroxyphenylglycine (Hpg)	C1=CC(=CC=C1C(C(=O)O)N)O	amino acid
