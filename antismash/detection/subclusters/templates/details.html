@@ -16,6 +16,11 @@
             <canvas id="smiles-canvas-{{ anchor }}-sc{{ i }}" class="smiles-canvas" data-smiles="{{ hit.compound.smiles }}" width="150" height="150"></canvas>
             <button class="smiles-copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('smiles-canvas-{{ anchor }}-sc{{ i }}').dataset.smiles)">Copy SMILES</button>
           </div>
+          <div id="smiles-canvas-{{ anchor }}-sc{{ i }}-modal" class="modal-container">
+            <div class="modal-content">
+              <canvas class="smiles-canvas-modal" data-smiles="{{hit.compound.smiles}}"></canvas>
+            </div>
+          </div>
           <div class="detection-details">
             <a class="cluster-rules-header" id="{{ anchor }}-sc{{ i }}-rules-header" href="#">Show pHMM detection rule</a>
             <div class="cluster-rules" id="{{ anchor }}-sc{{ i }}-rules">{{ hit.conditions_str }}</div>
