@@ -1,0 +1,12 @@
+# Contains rules for well defined subclusters, containing all expected functional parts
+
+# Cutoffs and neighbourhoods are given in kilobases
+
+RULE SCG0042
+    CATEGORY Other
+    DESCRIPTION 4-Hydroxyphenylglycine (Hpg) 
+    CUTOFF 40
+    NEIGHBOURHOOD 0
+    CONDITIONS cds(PDH_N and PDH_C) 
+               and Aminotran_1_2 
+               and Glyoxalase_4 and FMN_dh

@@ -1,0 +1,6 @@
+# name	description	cutoff	hmm_file	accession
+Aminotran_1_2	Aminotransferase class I and II	19	Aminotran_1_2.hmm	PF00155.24
+FMN_dh	FMN-dependent dehydrogenase	24	FMN_dh.hmm	PF01070.21
+Glyoxalase_4	Glyoxalase/Bleomycin resistance protein/Dioxygenase superfamily	27	Glyoxalase_4.hmm	PF13669.9
+PDH_C	Prephenate dehydrogenase, dimerization domain	22	PDH_C.hmm	PF20463.1
+PDH_N	Prephenate dehydrogenase, nucleotide-binding domain	26	PDH_N.hmm	PF02153.20
