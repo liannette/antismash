@@ -3,7 +3,7 @@
 # Cutoffs and neighbourhoods are given in kilobases
 
 RULE SCG0042
-    CATEGORY Other
+    CATEGORY Subcluster
     DESCRIPTION 4-Hydroxyphenylglycine (Hpg) 
     CUTOFF 40
     NEIGHBOURHOOD 0
