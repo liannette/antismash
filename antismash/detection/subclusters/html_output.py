@@ -113,25 +113,30 @@ class _DomainHitJS(TypedDict):
     bitscore: float
 
 
+def gather(prediction: SubclusterPrediction) -> list[dict]:
+    by_cds: dict[str, list[_DomainHitJS]] = defaultdict(list)
+    for domain_hit in prediction.domain_hits:
+        by_cds[domain_hit.cds_name].append(_DomainHitJS(
+            name=domain_hit.profile.name,
+            description=domain_hit.profile.description,
+            accession=domain_hit.profile.accession,
+            evalue=domain_hit.evalue,
+            bitscore=domain_hit.bitscore,
+        ))
+    return [{"cds": key, "domains": value} for key, value in by_cds.items()]
+
+
 def generate_javascript_data(record: Record, region: Region,
                              results: SubclusterDetectionResults) -> JSONBase:
     region_anchor = f"r{record.record_index}c{region.get_region_number()}"
 
-    hits = _get_fake_hits()
-    predictions = []
-    for i, hit in enumerate(hits, start=1):
-        cds_results: dict[str, list[_DomainHitJS]] = defaultdict(list)
-        for dh in hit.domain_hits:
-            cds_results[dh.cds_name].append(_DomainHitJS(
-                name=dh.profile.name,
-                description=dh.profile.description,
-                accession=dh.profile.accession,
-                evalue=dh.evalue,
-                bitscore=dh.bitscore,
-            ))
-        predictions.append({
+    predictions = _get_fake_hits()
+
+    javascript_data = []
+    for i, prediction in enumerate(predictions, start=1):
+        javascript_data.append({
             "identifier": f"subclusters-svg-{region_anchor}-sc{i}",
-            "cds_results": dict(cds_results),
+            "cds_results": gather(prediction),
         })
 
-    return {"subcluster_predictions": predictions}
+    return javascript_data
