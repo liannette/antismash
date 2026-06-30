@@ -3,17 +3,17 @@
 
 """Detection of subclusters
 """
+import logging
 from typing import Any, Optional
 
-from antismash.common.hmm_rule_parser.cluster_prediction import Ruleset
+from antismash.common.hmm_rule_parser.cluster_prediction import detect_protoclusters_and_signatures
 from antismash.common.secmet import Record
 from antismash.config import ConfigType
 from antismash.config.args import ModuleArgs
 from antismash.detection import DetectionStage
 
-from .compounds import get_subcluster_compounds
-from .results import SubclusterDetectionResults, SubclusterPrediction
-from .signatures import get_subcluster_profiles
+from .results import SubclusterDetectionResults
+from .ruleset import get_ruleset
 from .html_output import generate_html, will_handle, generate_javascript_data
 
 NAME = "subclusters"
@@ -59,58 +59,43 @@ def check_prereqs(_options: ConfigType) -> list[str]:
 def regenerate_previous_results(results: dict[str, Any], record: Record,
                                 options: ConfigType) -> Optional[SubclusterDetectionResults]:
     """Regenerate previous results."""
-    # if not results:
-    #     return None
-    # previous = SubclusterDetectionResults.from_json(results, record)
-    # if previous is None:
-    #     return None
-
-    # profiles = get_subcluster_profiles()
-    # compounds = get_subcluster_compounds()
-    # rule_by_name = {r.name: r for r in _build_ruleset(options).rules}
-
-    # enriched = []
-    # for hit in previous.hits:
-    #     if hit.rule_name not in rule_by_name:
-    #         logging.warning("Subcluster rule %r no longer exists; dropping cached result.", hit.rule_name)
-    #         continue
-    #     hit.enrich(rule_by_name[hit.rule_name], profiles, compounds.get(hit.rule_name))
-    #     enriched.append(hit)
-
-    # previous.hits = enriched
-    # return previous
-    # TODO: implement once detection pipeline (hmmdetails.txt, rules, compounds) is in place
     return None
+    if not results:
+        return None
+    previous = SubclusterDetectionResults.from_json(results, record)
+    if previous is None:
+        return None
+
+    # TODO: replace "strict" with options.subclusters_strictness once that option exists
+    current_strictness = "strict"
+    if previous.strictness != current_strictness:
+        logging.debug("Subcluster strictness changed from %r to %r; forcing re-detection.",
+                      previous.strictness, current_strictness)
+        return None
+
+    current_rule_names = get_ruleset(current_strictness).get_rule_names()
+    if previous.rule_names != current_rule_names:
+        logging.debug("Subcluster rules changed; forcing re-detection.")
+        return None
+
+    return previous
 
 
 def run_on_record(record: Record, previous_results: Optional[SubclusterDetectionResults],
-                  options: ConfigType) -> Optional[SubclusterDetectionResults]:
-    """ Finds the external annoations for the given record """
+                  options: ConfigType) -> SubclusterDetectionResults:
+    """Run subcluster detection on a single record."""
     if previous_results:
         return previous_results
-    
-    # # TODO: build ruleset from rule/HMM files
-    # ruleset: Ruleset = _build_ruleset(options)
 
-    # hits: list[SubclusterPrediction] = [
-    #     hit.enrich(ruleset) for hit in _detect_hits(record, ruleset)
-    # ]
+    # TODO: replace "strict" with options.subclusters_strictness once that option exists
+    current_strictness = "strict"
+    ruleset = get_ruleset(current_strictness)
+    rule_results = detect_protoclusters_and_signatures(record, ruleset)
 
-    # return SubclusterDetectionResults(
-    #     record_id=record.id,
-    #     rules_version=ruleset.tool,
-    #     hits=hits,
-    # )
-
-    return SubclusterDetectionResults(record.id, "ruleset_version_placeholder", [])  # placeholder until real detection is implemented
-
-
-def _build_ruleset(options: ConfigType) -> Ruleset:
-    """Construct the Ruleset from rule/HMM files.  Placeholder."""
-    raise NotImplementedError
- 
- 
-def _detect_hits(record: Record, ruleset: Ruleset) -> list[SubclusterPrediction]:
-    """Run rule-based detection for one region.  Placeholder."""
-    raise NotImplementedError
+    return SubclusterDetectionResults(
+        record_id=record.id,
+        rule_results=rule_results,
+        rule_names=ruleset.get_rule_names(),
+        strictness=current_strictness,
+    )
 

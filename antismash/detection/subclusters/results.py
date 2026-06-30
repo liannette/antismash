@@ -3,13 +3,14 @@ from dataclasses import dataclass, field
 from  typing import Any, Optional, Self
 
 from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
-from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults
+from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults, RuleDetectionResults
 from antismash.common.module_results import DetectionResults
 from antismash.common.secmet import Record, Region
 from antismash.common.secmet.locations import FeatureLocation, location_contains_other
 
-from .compounds import CompoundInfo
-from .signatures import SubclusterHmmSignature
+from .compounds import CompoundInfo, get_subcluster_compounds
+from .ruleset import get_ruleset
+from .signatures import SubclusterHmmSignature, get_subcluster_profiles
 
 
 @dataclass(frozen=True)
@@ -40,23 +41,21 @@ class SubclusterPrediction:
     end: int
     cds_results: list[CDSResults]
 
-    # Derived fields — populated by enrich(); not part of __init__
+    # Lazy fields — populated on first access; not part of __init__
     _rule: Optional[DetectionRule] = field(default=None, init=False, repr=False)
-    _conditions_str: str = field(default="", init=False, repr=False)
-    _domain_hits: list[DomainHit] = field(default_factory=list, init=False, repr=False)
-    _compound: CompoundInfo = field(default=None, init=False, repr=False)
-    _enriched: bool = field(default=False, init=False, repr=False)
+    _domain_hits: Optional[list[DomainHit]] = field(default=None, init=False, repr=False)
+    _compound: Optional[CompoundInfo] = field(default=None, init=False, repr=False)
 
     @property
     def rule(self) -> DetectionRule:
-        """The ``DetectionRule`` that fired, available after enrichment."""
-        self._require_enriched()
+        """The ``DetectionRule`` for this subcluster, loaded lazily from the ruleset."""
+        if self._rule is None:
+            self._rule = get_ruleset().get_rule_by_name(self.rule_name)
         return self._rule
 
     @property
     def conditions_str(self) -> str:
         """Condition string for display, with outer parentheses stripped."""
-        self._require_enriched()
         text = str(self.rule.conditions)
         if text.startswith("(") and text.endswith(")"):
             return text[1:-1]
@@ -65,13 +64,15 @@ class SubclusterPrediction:
     @property
     def domain_hits(self) -> list[DomainHit]:
         """Domain hits that fired for this subcluster, in deterministic order."""
-        self._require_enriched()
+        if self._domain_hits is None:
+            self._enrich()
         return self._domain_hits
 
     @property
     def compound(self) -> CompoundInfo:
         """Compound metadata."""
-        self._require_enriched()
+        if not self._compound:
+            self._compound = get_subcluster_compounds().get(self.rule_name)
         return self._compound
 
     @property
@@ -79,24 +80,16 @@ class SubclusterPrediction:
         """Sorted unique CDS names that contributed to this prediction."""
         return sorted({cr.cds.get_name() for cr in self.cds_results})
 
-    def enrich(self, rule: DetectionRule,
-               profiles: dict[str, SubclusterHmmSignature],
-               compound: CompoundInfo) -> Self:
-        """Populate derived fields from the fired rule and pre-loaded metadata.
+    def _enrich(self) -> Self:
+        """Compute domain hits from ``cds_results`` and store them in ``_domain_hits``.
 
-        Arguments:
-            rule: The ``DetectionRule`` whose name matches ``self.rule_name``.
-            profiles: Mapping of profile name to ``SubclusterHmmSignature``,
-                as returned by ``get_subcluster_profiles()``.
-            compound: Compound metadata for this rule, or ``None``.
+        Returns ``self`` so callers can write ``hit._enrich()`` inline.
 
-        Returns ``self`` so callers can write ``prediction.enrich(...)`` inline.
+        Note: AA location (query_start/query_end) is not available here.
+        HMMerHit carries it, but it is discarded when converted to SecMetQualifier.Domain
+        in hmm_rule_parser/cluster_prediction.py. A fix there would be needed to expose it.
         """
-        self._rule = rule
-
-        # Note: AA location (query_start/query_end) is not available here.
-        # HMMerHit carries it, but it is discarded when converted to SecMetQualifier.Domain
-        # in hmm_rule_parser/cluster_prediction.py. A fix there would be needed to expose it.
+        profiles = get_subcluster_profiles()
         hits: list[DomainHit] = []
         for cds_result in self.cds_results:
             fired = cds_result.definition_domains.get(self.rule_name, set())
@@ -110,8 +103,6 @@ class SubclusterPrediction:
                     bitscore=best.bitscore if best else None,
                 ))
         self._domain_hits = hits
-        self._compound = compound
-        self._enriched = True
         return self
 
     def to_json(self) -> dict[str, Any]:
@@ -139,12 +130,6 @@ class SubclusterPrediction:
             cds_results=cds_results,
         )
 
-    def _require_enriched(self) -> None:
-        if not self._enriched:
-            raise RuntimeError(
-                f"{self!r} has not been enriched — call enrich(rule, profiles, compound) first"
-            )
-
     def __repr__(self) -> str:
         return (
             f"SubclusterPrediction(rule_name={self.rule_name!r}, "
@@ -153,7 +138,7 @@ class SubclusterPrediction:
         )
 
 
-class SubclusterDetectionResults(DetectionResults): 
+class SubclusterDetectionResults(DetectionResults):
     """Results class for the Subcluster detection module """
 
     schema_version = "1"  # increment when the JSON format changes
@@ -161,12 +146,23 @@ class SubclusterDetectionResults(DetectionResults):
     def __init__(
             self,
             record_id: str,
-            rules_version: str,
-            hits: list[SubclusterPrediction],
+            rule_results: RuleDetectionResults,
+            rule_names: set[str],
+            strictness: str = "strict",
     ) -> None:
         super().__init__(record_id)
-        self.rules_version = rules_version
-        self.hits = hits
+        self.rule_results = rule_results
+        self.rule_names = rule_names
+        self.strictness = strictness
+        self.hits = [
+            SubclusterPrediction(
+                rule_name=protocluster.product,
+                start=protocluster.core_location.start,
+                end=protocluster.core_location.end,
+                cds_results=cds_results,
+            )
+            for protocluster, cds_results in rule_results.cds_by_cluster.items()
+        ]
 
     def get_hits_for_region(self, region: Region) -> list[SubclusterPrediction]:
         """Return all hits fully contained within the given region."""
@@ -189,8 +185,9 @@ class SubclusterDetectionResults(DetectionResults):
         return {
             "schema_version": self.schema_version,
             "record_id": self.record_id,
-            "rules_version": self.rules_version,
-            "hits": [hit.to_json() for hit in self.hits],
+            "strictness": self.strictness,
+            "rule_names": sorted(self.rule_names),
+            "rule_results": self.rule_results.to_json(),
         }
 
     @classmethod
@@ -201,18 +198,18 @@ class SubclusterDetectionResults(DetectionResults):
                 data.get("schema_version"), cls.schema_version,
             )
             return None
+        rule_results = RuleDetectionResults.from_json(data["rule_results"], record)
+        if rule_results is None:
+            logging.debug("Discarding subcluster results: RuleDetectionResults schema changed")
+            return None
         return cls(
             record_id=data["record_id"],
-            rules_version=data["rules_version"],
-            hits=[SubclusterPrediction.from_json(hit_data, record) for hit_data in data["hits"]],
+            rule_results=rule_results,
+            rule_names=set(data.get("rule_names", [])),
+            strictness=data.get("strictness", "strict"),
         )
 
     def add_to_record(self, record: Record) -> None:
         if record.id != self.record_id:
             raise ValueError("Record to store in and record analysed don't match")
-        # any results would be added here
-        # for an example of new features, see antismash.modules.tta
-        # for an example of qualifiers, see antismash.modules.t2pks
-        # any new feature types or qualifiers would be implemented in antismash.common.secmet,
-        #   and would need to be able to be converted to and from biopython's SeqFeature without loss
-        raise NotImplementedError()  # remove this when completed
+        self.rule_results.annotate_cds_features()
