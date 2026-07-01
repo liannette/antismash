@@ -1,6 +1,7 @@
 import logging
-from dataclasses import dataclass, field
-from  typing import Any, Optional, Self
+from collections import defaultdict
+from dataclasses import dataclass
+from typing import Any, Optional, Self
 
 from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
 from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults, RuleDetectionResults
@@ -14,126 +15,90 @@ from .signatures import SubclusterHmmSignature, get_subcluster_profiles
 
 
 @dataclass(frozen=True)
-class DomainHit:
+class Domain:
     """A single profile match that contributed to a subcluster hit."""
-    profile: SubclusterHmmSignature
+    name: str
+    description: Optional[str]
+    accession: Optional[str]
+
+
+@dataclass(frozen=True)
+class CDSDomainHit:
+    """A single profile match found in a specific CDS."""
+    domain: Domain
     cds_name: str
     evalue: float
     bitscore: float
 
 
-@dataclass
 class SubclusterPrediction:
-    """A single predicted subcluster.
-
-    After detection, call ``enrich(rule, profiles, compounds)`` once to populate
-    the derived fields used by the HTML template.
+    """A single predicted subcluster, used as a view object for HTML rendering.
 
     Attributes:
         rule_name: Name of the ``DetectionRule`` that fired.
-        start: Start of the core location (0-based bp).
-        end: End of the core location (0-based bp).
+        core_location: Location of the protocluster core that produced this prediction.
         cds_results: ``CDSResults`` instances for every CDS that contributed
             to this prediction, as returned by the rule-based detection pipeline.
     """
-    rule_name: str
-    start: int
-    end: int
-    cds_results: list[CDSResults]
 
-    # Lazy fields — populated on first access; not part of __init__
-    _rule: Optional[DetectionRule] = field(default=None, init=False, repr=False)
-    _domain_hits: Optional[list[DomainHit]] = field(default=None, init=False, repr=False)
-    _compound: Optional[CompoundInfo] = field(default=None, init=False, repr=False)
-
-    @property
-    def rule(self) -> DetectionRule:
-        """The ``DetectionRule`` for this subcluster, loaded lazily from the ruleset."""
-        if self._rule is None:
-            self._rule = get_ruleset().get_rule_by_name(self.rule_name)
-        return self._rule
+    def __init__(
+            self,
+            rule_name: str,
+            core_location: FeatureLocation,
+            cds_results: list[CDSResults],
+            *,
+            rule: Optional[DetectionRule] = None,
+            compound: Optional[CompoundInfo] = None,
+    ) -> None:
+        self.rule_name = rule_name
+        self.core_location = core_location
+        self.cds_results = cds_results
+        self.rule = rule if rule is not None else get_ruleset().get_rule_by_name(rule_name)
+        self.compound = compound if compound is not None else get_subcluster_compounds().get(rule_name)
 
     @property
     def conditions_str(self) -> str:
-        """Condition string for display, with outer parentheses stripped."""
         text = str(self.rule.conditions)
         if text.startswith("(") and text.endswith(")"):
             return text[1:-1]
         return text
 
     @property
-    def domain_hits(self) -> list[DomainHit]:
-        """Domain hits that fired for this subcluster, in deterministic order."""
-        if self._domain_hits is None:
-            self._enrich()
-        return self._domain_hits
-
-    @property
-    def compound(self) -> CompoundInfo:
-        """Compound metadata."""
-        if not self._compound:
-            self._compound = get_subcluster_compounds().get(self.rule_name)
-        return self._compound
-
-    @property
     def cds_names(self) -> list[str]:
-        """Sorted unique CDS names that contributed to this prediction."""
         return sorted({cr.cds.get_name() for cr in self.cds_results})
 
-    def _enrich(self) -> Self:
-        """Compute domain hits from ``cds_results`` and store them in ``_domain_hits``.
-
-        Returns ``self`` so callers can write ``hit._enrich()`` inline.
-
-        Note: AA location (query_start/query_end) is not available here.
-        HMMerHit carries it, but it is discarded when converted to SecMetQualifier.Domain
-        in hmm_rule_parser/cluster_prediction.py. A fix there would be needed to expose it.
-        """
-        profiles = get_subcluster_profiles()
-        hits: list[DomainHit] = []
+    @property
+    def domain_hits_by_cds(self) -> dict[str, list[CDSDomainHit]]:
+        profiles: dict[str, SubclusterHmmSignature] = get_subcluster_profiles()
+        hits_by_cds: dict[str, list[CDSDomainHit]] = defaultdict(list)
         for cds_result in self.cds_results:
+            cds_name = cds_result.cds.get_name()
             fired = cds_result.definition_domains.get(self.rule_name, set())
             for domain_name in sorted(fired):
                 matching = [d for d in cds_result.domains if d.name == domain_name]
                 best = max(matching, key=lambda d: d.bitscore) if matching else None
-                hits.append(DomainHit(
-                    profile=profiles[domain_name],
-                    cds_name=cds_result.cds.get_name(),
+                profile = profiles[domain_name]
+                hits_by_cds[cds_name].append(CDSDomainHit(
+                    domain=Domain(
+                        name=profile.name,
+                        description=profile.description,
+                        accession=profile.accession,
+                    ),
+                    cds_name=cds_name,
                     evalue=best.evalue if best else None,
                     bitscore=best.bitscore if best else None,
                 ))
-        self._domain_hits = hits
-        return self
+        return dict(hits_by_cds)
 
-    def to_json(self) -> dict[str, Any]:
-        """Serialise the raw detection data for this prediction."""
-        return {
-            "rule_name": self.rule_name,
-            "start": self.start,
-            "end": self.end,
-            "cds_results": [cr.to_json() for cr in self.cds_results],
-        }
-
-    @classmethod
-    def from_json(cls, data: dict[str, Any], record: Record) -> Self:
-        """Reconstruct an un-enriched SubclusterPrediction from a serialised dict.
-
-        The returned prediction must be enriched by calling
-        ``enrich(rule, profiles, compounds)`` before its derived properties
-        can be accessed.
-        """
-        cds_results = [CDSResults.from_json(cr, record) for cr in data["cds_results"]]
-        return cls(
-            rule_name=data["rule_name"],
-            start=data["start"],
-            end=data["end"],
-            cds_results=cds_results,
-        )
+    @property
+    def domain_hits(self) -> list[CDSDomainHit]:
+        """A flat list of every domain hit, each paired with its CDS name."""
+        return [hit for hits in self.domain_hits_by_cds.values() for hit in hits]
 
     def __repr__(self) -> str:
         return (
             f"SubclusterPrediction(rule_name={self.rule_name!r}, "
-            f"core={self.start}-{self.end}, "
+            f"core={self.core_location.start}-{self.core_location.end}, "
             f"cds_count={len(self.cds_results)})"
         )
 
@@ -157,8 +122,7 @@ class SubclusterDetectionResults(DetectionResults):
         self.hits = [
             SubclusterPrediction(
                 rule_name=protocluster.product,
-                start=protocluster.core_location.start,
-                end=protocluster.core_location.end,
+                core_location=protocluster.core_location,
                 cds_results=cds_results,
             )
             for protocluster, cds_results in rule_results.cds_by_cluster.items()
@@ -168,7 +132,7 @@ class SubclusterDetectionResults(DetectionResults):
         """Return all hits fully contained within the given region."""
         return [
             hit for hit in self.hits
-            if location_contains_other(region.location, FeatureLocation(hit.start, hit.end))
+            if location_contains_other(region.location, hit.core_location)
         ]
 
     def get_hits_outside_regions(self, record: Record) -> list[SubclusterPrediction]:
@@ -176,7 +140,7 @@ class SubclusterDetectionResults(DetectionResults):
         return [
             hit for hit in self.hits
             if not any(
-                location_contains_other(region.location, FeatureLocation(hit.start, hit.end))
+                location_contains_other(region.location, hit.core_location)
                 for region in record.get_regions()
             )
         ]
