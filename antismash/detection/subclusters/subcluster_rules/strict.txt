@@ -9,7 +9,7 @@ RULE SCG0041
     NEIGHBOURHOOD 0
     CONDITIONS cds(Chal_sti_synt_N and Chal_sti_synt_C)
                and Aminotran_1_2 
-               and repeatable(2, [ECH_1,])
+               and ECH_1
 
 RULE SCG0042
     CATEGORY Subcluster
