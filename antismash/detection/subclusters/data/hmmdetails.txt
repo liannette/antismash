@@ -1,6 +1,9 @@
-# name	description	cutoff	hmm_file	accession
 Aminotran_1_2	Aminotransferase class I and II	19	Aminotran_1_2.hmm	PF00155.24
+Chal_sti_synt_C	Chalcone and stilbene synthases, C-terminal domain	27	Chal_sti_synt_C.hmm	PF02797.22
+Chal_sti_synt_N	Chalcone and stilbene synthases, N-terminal domain	27	Chal_sti_synt_N.hmm	PF00195.26
+ECH_1	Enoyl-CoA hydratase/isomerase	27	ECH_1.hmm	PF00378.26
 FMN_dh	FMN-dependent dehydrogenase	24	FMN_dh.hmm	PF01070.21
 Glyoxalase_4	Glyoxalase/Bleomycin resistance protein/Dioxygenase superfamily	27	Glyoxalase_4.hmm	PF13669.9
 PDH_C	Prephenate dehydrogenase, dimerization domain	22	PDH_C.hmm	PF20463.1
 PDH_N	Prephenate dehydrogenase, nucleotide-binding domain	26	PDH_N.hmm	PF02153.20
+Aminotran_1_2	Aminotransferase class I and II	19	subclusters.hmm	PF00155.24

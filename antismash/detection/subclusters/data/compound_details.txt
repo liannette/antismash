@@ -1,2 +1,3 @@
 # rule_name	compound_name	smiles	classification (semicolon-separated)
+SCG0041	3,5-Dihydroxyphenylglycine (Dhpg)	C1=C(C=C(C=C1O)O)C(C(=O)O)N	amino acid
 SCG0042	4-Hydroxyphenylglycine (Hpg)	C1=CC(=CC=C1C(C(=O)O)N)O	amino acid
