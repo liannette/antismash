@@ -93,17 +93,17 @@ def generate_html(region_layer: RegionLayer, results: Optional[SubclusterDetecti
                   record_layer: RecordLayer, options: ConfigType) -> HTMLSections:
     """Build the detail-panel HTML for subcluster hits in this region."""
     # if results is not None:
-    #     hits = results.get_hits_for_region(region_layer.region_feature)
+    #     predictions = results.get_hits_for_region(region_layer.region_feature)
     # else:
-    #     hits = []
+    #     predictions = []
+    predictions = _get_fake_hits()
 
-    hits = _get_fake_hits()
-    enum_hits = list(enumerate(hits, start=1))
+    enum_predictions = list(enumerate(predictions, start=1))
 
     tooltip = Markup("Subclusters are sets of genes responsible for producing a specific chemical moiety.")
 
     template = FileTemplate(path.get_full_path(__file__, "templates", "details.html"))
-    section = template.render(enum_hits=enum_hits, tooltip=tooltip, anchor=region_layer.anchor_id)
+    section = template.render(enum_hits=enum_predictions, tooltip=tooltip, anchor=region_layer.anchor_id)
 
     html = HTMLSections(name="subclusters")
     html.add_detail_section("Subclusters", section, class_name="subclusters")

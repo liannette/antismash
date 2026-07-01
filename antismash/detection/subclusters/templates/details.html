@@ -2,8 +2,8 @@
   <div class="heading">
     <span>Subcluster Predictions</span> {{ help_tooltip(tooltip, "subcluster-body") }}
   </div>
-  {% if enum_hits %}
-    {% for i, hit in enum_hits %}
+  {% if enum_predictions %}
+    {% for i, hit in enum_predictions %}
     <div class="subcluster-prediction" id="{{ anchor }}-sc{{ i }}">
       <div class="header">
         <span class="compound-name">{{ hit.compound.name }}</span>
