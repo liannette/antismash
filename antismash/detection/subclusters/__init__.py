@@ -59,7 +59,6 @@ def check_prereqs(_options: ConfigType) -> list[str]:
 def regenerate_previous_results(results: dict[str, Any], record: Record,
                                 options: ConfigType) -> Optional[SubclusterDetectionResults]:
     """Regenerate previous results."""
-    return None
     if not results:
         return None
     previous = SubclusterDetectionResults.from_json(results, record)
