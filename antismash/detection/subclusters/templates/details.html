@@ -27,11 +27,11 @@
             <table class="domain-table">
               <thead><tr><th>Domain</th><th>Accession</th><th>Description</th><th>Detected in</th></tr></thead>
               <tbody>
-                {% for domain_name, dhs in hit.domain_hits | groupby("domain.name") %}
+                {% for domain_name, dhs in hit.domain_hits_by_domain.items() %}
                 <tr>
-                  <td><code>{{ dhs[0].domain.name }}</code></td>
-                  <td>{% if dhs[0].domain.accession %}<code>{{ dhs[0].domain.accession }}</code>{% else %}—{% endif %}</td>
-                  <td>{{ dhs[0].domain.description or "—" }}</td>
+                  <td><code>{{ dhs[0].domain_name }}</code></td>
+                  <td>{% if dhs[0].domain_accession %}<code>{{ dhs[0].domain_accession }}</code>{% else %}—{% endif %}</td>
+                  <td>{{ dhs[0].domain_description or "—" }}</td>
                   <td>{% for dh in dhs %}{{ cds_selector_span(dh.cds_name) }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
                 </tr>
                 {% endfor %}

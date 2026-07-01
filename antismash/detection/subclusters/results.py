@@ -1,6 +1,7 @@
 import logging
 from collections import defaultdict
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Any, Optional, Self
 
 from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
@@ -15,17 +16,11 @@ from .signatures import SubclusterHmmSignature, get_subcluster_profiles
 
 
 @dataclass(frozen=True)
-class Domain:
-    """A single profile match that contributed to a subcluster hit."""
-    name: str
-    description: Optional[str]
-    accession: Optional[str]
-
-
-@dataclass(frozen=True)
 class CDSDomainHit:
     """A single profile match found in a specific CDS."""
-    domain: Domain
+    domain_name: str
+    domain_description: Optional[str]
+    domain_accession: Optional[str]
     cds_name: str
     evalue: float
     bitscore: float
@@ -63,14 +58,11 @@ class SubclusterPrediction:
             return text[1:-1]
         return text
 
-    @property
-    def cds_names(self) -> list[str]:
-        return sorted({cr.cds.get_name() for cr in self.cds_results})
-
-    @property
-    def domain_hits_by_cds(self) -> dict[str, list[CDSDomainHit]]:
+    @cached_property
+    def domain_hits(self) -> list[CDSDomainHit]:
+        """A flat list of every domain hit, each paired with its CDS name."""
         profiles: dict[str, SubclusterHmmSignature] = get_subcluster_profiles()
-        hits_by_cds: dict[str, list[CDSDomainHit]] = defaultdict(list)
+        hits: list[CDSDomainHit] = []
         for cds_result in self.cds_results:
             cds_name = cds_result.cds.get_name()
             fired = cds_result.definition_domains.get(self.rule_name, set())
@@ -78,22 +70,29 @@ class SubclusterPrediction:
                 matching = [d for d in cds_result.domains if d.name == domain_name]
                 best = max(matching, key=lambda d: d.bitscore) if matching else None
                 profile = profiles[domain_name]
-                hits_by_cds[cds_name].append(CDSDomainHit(
-                    domain=Domain(
-                        name=profile.name,
-                        description=profile.description,
-                        accession=profile.accession,
-                    ),
+                hits.append(CDSDomainHit(
+                    domain_name=profile.name,
+                    domain_description=profile.description,
+                    domain_accession=profile.accession,
                     cds_name=cds_name,
                     evalue=best.evalue if best else None,
                     bitscore=best.bitscore if best else None,
                 ))
+        return hits
+
+    @property
+    def domain_hits_by_cds(self) -> dict[str, list[CDSDomainHit]]:
+        hits_by_cds: dict[str, list[CDSDomainHit]] = defaultdict(list)
+        for hit in self.domain_hits:
+            hits_by_cds[hit.cds_name].append(hit)
         return dict(hits_by_cds)
 
     @property
-    def domain_hits(self) -> list[CDSDomainHit]:
-        """A flat list of every domain hit, each paired with its CDS name."""
-        return [hit for hits in self.domain_hits_by_cds.values() for hit in hits]
+    def domain_hits_by_domain(self) -> dict[str, list[CDSDomainHit]]:
+        hits_by_domain: dict[str, list[CDSDomainHit]] = defaultdict(list)
+        for hit in self.domain_hits:
+            hits_by_domain[hit.domain_name].append(hit)
+        return dict(hits_by_domain)
 
     def __repr__(self) -> str:
         return (
@@ -162,10 +161,12 @@ class SubclusterDetectionResults(DetectionResults):
                 data.get("schema_version"), cls.schema_version,
             )
             return None
+        
         rule_results = RuleDetectionResults.from_json(data["rule_results"], record)
         if rule_results is None:
             logging.debug("Discarding subcluster results: RuleDetectionResults schema changed")
             return None
+        
         return cls(
             record_id=data["record_id"],
             rule_results=rule_results,

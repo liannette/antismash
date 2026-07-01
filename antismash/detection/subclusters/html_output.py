@@ -1,6 +1,5 @@
 """Manages HTML construction for the subcluster detection module."""
 
-from dataclasses import asdict
 from types import SimpleNamespace
 from typing import Optional
 
@@ -125,7 +124,13 @@ def generate_javascript_data(record: Record, region: Region,
                 {
                     "cds": cds_name,
                     "domains": [
-                        {key: value for key, value in asdict(hit).items() if key != "cds_name"}
+                        {
+                            "name": hit.domain_name,
+                            "description": hit.domain_description,
+                            "accession": hit.domain_accession,
+                            "evalue": hit.evalue,
+                            "bitscore": hit.bitscore,
+                        }
                         for hit in hits
                     ],
                 }
