@@ -1914,12 +1914,15 @@ ul.dropdown-options {
         border-radius: 3px;
         margin-left: 1.5em;
         margin-right: 1.5em;
+        margin-bottom: 0.5em;
+
     }
 
     .collapser-inner {
         display: flex;
         flex-wrap: wrap;
         align-items: flex-start;
+        gap: 1.5em;
     }
 
     .smiles-wrap {
@@ -1969,10 +1972,8 @@ ul.dropdown-options {
     .subclusters-svg {
         width: calc(100% - 3em);
         height: 1.5em;
-        background-color: #fffacd;
-        border: 1px dashed #ccc;
-        margin-left: 1.5em;
-        margin-right: 1.5em;
+        margin-left: 2%;
+        margin-right: 2%;
         margin-top: 0.1em;
         margin-bottom: 1em;
     }
