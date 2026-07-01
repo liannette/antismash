@@ -50,10 +50,16 @@ def is_enabled(options: ConfigType) -> bool:
     return options.subclusters
 
 
-def check_prereqs(_options: ConfigType) -> list[str]:
+def check_prereqs(options: ConfigType) -> list[str]:
     """ Checks that prerequisites are satisfied.
     """
     return []
+
+
+def _get_strictness(options: ConfigType) -> str:
+    """ Returns the subcluster detection strictness to use for the given options. """
+    # TODO: replace "strict" with options.subclusters_strictness once that option exists
+    return "strict"
 
 
 def regenerate_previous_results(results: dict[str, Any], record: Record,
@@ -65,8 +71,7 @@ def regenerate_previous_results(results: dict[str, Any], record: Record,
     if previous is None:
         return None
 
-    # TODO: replace "strict" with options.subclusters_strictness once that option exists
-    current_strictness = "strict"
+    current_strictness = _get_strictness(options)
     if previous.strictness != current_strictness:
         logging.debug("Subcluster strictness changed from %r to %r; forcing re-detection.",
                       previous.strictness, current_strictness)
@@ -86,8 +91,7 @@ def run_on_record(record: Record, previous_results: Optional[SubclusterDetection
     if previous_results:
         return previous_results
 
-    # TODO: replace "strict" with options.subclusters_strictness once that option exists
-    current_strictness = "strict"
+    current_strictness = _get_strictness(options)
     ruleset = get_ruleset(current_strictness)
     rule_results = detect_protoclusters_and_signatures(record, ruleset)
 
