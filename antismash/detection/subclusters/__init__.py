@@ -4,8 +4,10 @@
 """Detection of subclusters
 """
 import logging
+import os
 from typing import Any, Optional
 
+from antismash.common import hmmer, path
 from antismash.common.hmm_rule_parser.cluster_prediction import detect_protoclusters_and_signatures
 from antismash.common.secmet import Record
 from antismash.config import ConfigType
@@ -14,6 +16,7 @@ from antismash.detection import DetectionStage
 
 from .results import SubclusterDetectionResults
 from .ruleset import get_ruleset
+from .signatures import get_subcluster_profiles
 from .html_output import generate_html, will_handle, generate_javascript_data
 
 NAME = "subclusters"
@@ -50,10 +53,60 @@ def is_enabled(options: ConfigType) -> bool:
     return options.subclusters
 
 
-def check_prereqs(options: ConfigType) -> list[str]:
-    """ Checks that prerequisites are satisfied.
+def prepare_data(logging_only: bool = False) -> list[str]:
+    """ Ensures packaged data is fully prepared.
+
+        Aggregates the individual subcluster HMM profiles into a single
+        ``subclusters.hmm`` file and presses it with hmmpress, regenerating
+        either whenever they are missing or out of date. Mirrors the
+        ``hmm_detection`` module's handling of ``bgc_seeds.hmm``.
+
+        Arguments:
+            logging_only: whether to return error messages instead of raising exceptions
+
+        Returns:
+            a list of error messages (only if logging_only is True)
     """
-    return []
+    failure_messages: list[str] = []
+
+    # Check that hmmdetails.txt is readable and well-formatted
+    try:
+        profiles = get_subcluster_profiles()
+    except ValueError as err:
+        if not logging_only:
+            raise
+        return [str(err)]
+
+    aggregate_hmm = path.get_full_path(__file__, "data", "subclusters.hmm")
+    # SubclusterHmmSignature.hmm_file is already an absolute path
+    hmm_files = [profile.hmm_file for profile in profiles.values()]
+
+    description_file = path.get_full_path(__file__, "data", "hmmdetails.txt")
+    force_replace = not (path.locate_file(aggregate_hmm)
+                         and os.path.getmtime(description_file) < os.path.getmtime(aggregate_hmm))
+
+    failure_messages.extend(hmmer.aggregate_profiles(aggregate_hmm, hmm_files, force_replace=force_replace,
+                                                     return_not_raise=logging_only))
+
+    return failure_messages
+
+
+def check_prereqs(options: ConfigType) -> list[str]:
+    """ Check that prereqs are satisfied. hmmpress is only required if the
+        databases have not yet been generated.
+    """
+    failure_messages = []
+    for binary_name in ["hmmsearch", "hmmpress"]:
+        if binary_name not in options.executables:
+            failure_messages.append(f"Failed to locate executable for {binary_name!r}")
+
+    # no point checking the data if we can't use it
+    if failure_messages:
+        return failure_messages
+
+    failure_messages.extend(prepare_data(logging_only=True))
+
+    return failure_messages
 
 
 def _get_strictness(options: ConfigType) -> str:
