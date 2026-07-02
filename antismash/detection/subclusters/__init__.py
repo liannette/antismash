@@ -16,7 +16,7 @@ from antismash.detection import DetectionStage
 
 from .results import SubclusterDetectionResults
 from .ruleset import get_ruleset
-from .signatures import get_subcluster_profiles
+from .signatures import get_signature_profiles
 from .html_output import generate_html, will_handle, generate_javascript_data
 
 NAME = "subclusters"
@@ -56,7 +56,7 @@ def is_enabled(options: ConfigType) -> bool:
 def prepare_data(logging_only: bool = False) -> list[str]:
     """ Ensures packaged data is fully prepared.
 
-        Aggregates the individual subcluster HMM profiles into a single
+        Aggregates the individual subcluster HMM signatures into a single
         ``subclusters.hmm`` file and presses it with hmmpress, regenerating
         either whenever they are missing or out of date. Mirrors the
         ``hmm_detection`` module's handling of ``bgc_seeds.hmm``.
@@ -71,7 +71,7 @@ def prepare_data(logging_only: bool = False) -> list[str]:
 
     # Check that hmmdetails.txt is readable and well-formatted
     try:
-        profiles = get_subcluster_profiles()
+        signatures = get_signature_profiles()
     except ValueError as err:
         if not logging_only:
             raise
@@ -79,7 +79,7 @@ def prepare_data(logging_only: bool = False) -> list[str]:
 
     aggregate_hmm = path.get_full_path(__file__, "data", "subclusters.hmm")
     # SubclusterHmmSignature.hmm_file is already an absolute path
-    hmm_files = [profile.hmm_file for profile in profiles.values()]
+    hmm_files = [signature.hmm_file for signature in signatures]
 
     description_file = path.get_full_path(__file__, "data", "hmmdetails.txt")
     force_replace = not (path.locate_file(aggregate_hmm)
