@@ -92,11 +92,8 @@ def _get_fake_hits() -> list[SubclusterPrediction]:
 def generate_html(region_layer: RegionLayer, results: Optional[SubclusterDetectionResults],
                   record_layer: RecordLayer, options: ConfigType) -> HTMLSections:
     """Build the detail-panel HTML for subcluster hits in this region."""
-    # if results is not None:
-    #     predictions = results.get_hits_for_region(region_layer.region_feature)
-    # else:
-    #     predictions = []
-    predictions = _get_fake_hits()
+    predictions = results.get_hits_for_region(region_layer.region_feature)
+    #predictions = _get_fake_hits()
 
     enum_predictions = list(enumerate(predictions, start=1))
 
@@ -114,11 +111,8 @@ def generate_javascript_data(record: Record, region: Region,
                              results: SubclusterDetectionResults) -> JSONBase:
     region_anchor = f"r{record.record_index}c{region.get_region_number()}"
 
-    # if results is not None:
-    #     predictions = results.get_hits_for_region(region_layer.region_feature)
-    # else:
-    #     predictions = []
-    predictions = _get_fake_hits()
+    predictions = results.get_hits_for_region(region)
+    #predictions = _get_fake_hits()
 
     javascript_data = []
     for i, prediction in enumerate(predictions, start=1):
