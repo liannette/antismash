@@ -20,7 +20,7 @@ def will_handle(products: list[str], categories: set[str]) -> bool:
     return True
 
 
-def _get_fake_hits() -> list[SubclusterPrediction]:
+def _get_fake_predictions() -> list[SubclusterPrediction]:
     """Hard-coded enriched predictions for template development.
 
     Remove this function and its call-site in ``generate_html`` once real
@@ -40,7 +40,7 @@ def _get_fake_hits() -> list[SubclusterPrediction]:
             ))
         return results
 
-    hit_a = SubclusterPrediction(
+    prediction_a = SubclusterPrediction(
         rule_name="SCG0006",
         core_location=FeatureLocation(17346, 21101),
         cds_results=_fake_cds_results("SCG0006", {
@@ -63,7 +63,7 @@ def _get_fake_hits() -> list[SubclusterPrediction]:
         ),
     )
 
-    hit_b = SubclusterPrediction(
+    prediction_b = SubclusterPrediction(
         rule_name="SCG0042",
         core_location=FeatureLocation(27326, 80190),
         cds_results=_fake_cds_results("SCG0042", {
@@ -86,14 +86,14 @@ def _get_fake_hits() -> list[SubclusterPrediction]:
         ),
     )
 
-    return [hit_a, hit_b]
+    return [prediction_a, prediction_b]
 
 
 def generate_html(region_layer: RegionLayer, results: Optional[SubclusterDetectionResults],
                   record_layer: RecordLayer, options: ConfigType) -> HTMLSections:
-    """Build the detail-panel HTML for subcluster hits in this region."""
-    predictions = results.get_hits_for_region(region_layer.region_feature)
-    #predictions = _get_fake_hits()
+    """Build the detail-panel HTML for subcluster predictions in this region."""
+    predictions = results.get_predictions_for_region(region_layer.region_feature)
+    #predictions = _get_fake_predictions()
 
     enum_predictions = list(enumerate(predictions, start=1))
 
@@ -111,8 +111,8 @@ def generate_javascript_data(record: Record, region: Region,
                              results: SubclusterDetectionResults) -> JSONBase:
     region_anchor = f"r{record.record_index}c{region.get_region_number()}"
 
-    predictions = results.get_hits_for_region(region)
-    #predictions = _get_fake_hits()
+    predictions = results.get_predictions_for_region(region)
+    #predictions = _get_fake_predictions()
 
     javascript_data = []
     for i, prediction in enumerate(predictions, start=1):

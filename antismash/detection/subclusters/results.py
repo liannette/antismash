@@ -124,7 +124,7 @@ class SubclusterDetectionResults(DetectionResults):
         # to avoid the misleading qualifier in the output.
         for protocluster in self.rule_results.protoclusters:
             protocluster.tool = self.rule_results.tool
-        self.hits = [
+        self.predictions = [
             SubclusterPrediction(
                 rule_name=protocluster.product,
                 core_location=protocluster.core_location,
@@ -133,19 +133,19 @@ class SubclusterDetectionResults(DetectionResults):
             for protocluster, cds_results in rule_results.cds_by_cluster.items()
         ]
 
-    def get_hits_for_region(self, region: Region) -> list[SubclusterPrediction]:
-        """Return all hits fully contained within the given region."""
+    def get_predictions_for_region(self, region: Region) -> list[SubclusterPrediction]:
+        """Return all predictions fully contained within the given region."""
         return [
-            hit for hit in self.hits
-            if location_contains_other(region.location, hit.core_location)
+            prediction for prediction in self.predictions
+            if location_contains_other(region.location, prediction.core_location)
         ]
 
-    def get_hits_outside_regions(self, record: Record) -> list[SubclusterPrediction]:
-        """Return hits not fully contained by any region in the record."""
+    def get_predictions_outside_regions(self, record: Record) -> list[SubclusterPrediction]:
+        """Return predictions not fully contained by any region in the record."""
         return [
-            hit for hit in self.hits
+            prediction for prediction in self.predictions
             if not any(
-                location_contains_other(region.location, hit.core_location)
+                location_contains_other(region.location, prediction.core_location)
                 for region in record.get_regions()
             )
         ]

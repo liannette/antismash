@@ -3,31 +3,31 @@
     <span>Subcluster Predictions</span> {{ help_tooltip(tooltip, "subcluster-body") }}
   </div>
   {% if enum_predictions %}
-    {% for i, hit in enum_predictions %}
+    {% for i, prediction in enum_predictions %}
     <div class="subcluster-prediction" id="{{ anchor }}-sc{{ i }}">
       <div class="header">
-        <span class="compound-name">{{ hit.compound.name }}</span>
-        <span class="compound-class">{{ hit.compound.classification | join(", ") }}</span>
-        <span class="rule-name">{{ hit.rule_name }}</span>
+        <span class="compound-name">{{ prediction.compound.name }}</span>
+        <span class="compound-class">{{ prediction.compound.classification | join(", ") }}</span>
+        <span class="rule-name">{{ prediction.rule_name }}</span>
       </div>
       {{ collapser_start(target="subcluster_prediction-%s" % i, level="none") }}
         <div class="collapser-inner">
           <div class="smiles-wrap">
-            <canvas id="smiles-canvas-{{ anchor }}-sc{{ i }}" class="smiles-canvas" data-smiles="{{ hit.compound.smiles }}" width="150" height="150"></canvas>
+            <canvas id="smiles-canvas-{{ anchor }}-sc{{ i }}" class="smiles-canvas" data-smiles="{{ prediction.compound.smiles }}" width="150" height="150"></canvas>
             <button class="smiles-copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('smiles-canvas-{{ anchor }}-sc{{ i }}').dataset.smiles)">Copy SMILES</button>
           </div>
           <div id="smiles-canvas-{{ anchor }}-sc{{ i }}-modal" class="modal-container">
             <div class="modal-content">
-              <canvas class="smiles-canvas-modal" data-smiles="{{hit.compound.smiles}}"></canvas>
+              <canvas class="smiles-canvas-modal" data-smiles="{{prediction.compound.smiles}}"></canvas>
             </div>
           </div>
           <div class="detection-details">
             <a class="cluster-rules-header" id="{{ anchor }}-sc{{ i }}-rules-header" href="#">Show detection rule</a>
-            <div class="cluster-rules" id="{{ anchor }}-sc{{ i }}-rules">{{ hit.conditions_str }}</div>
+            <div class="cluster-rules" id="{{ anchor }}-sc{{ i }}-rules">{{ prediction.conditions_str }}</div>
             <table class="domain-table">
               <thead><tr><th>Domain</th><th>Accession</th><th>Description</th><th>Detected in</th></tr></thead>
               <tbody>
-                {% for domain_name, dhs in hit.domain_hits_by_domain.items() %}
+                {% for domain_name, dhs in prediction.domain_hits_by_domain.items() %}
                 <tr>
                   <td><code>{{ dhs[0].domain_name }}</code></td>
                   <td>{% if dhs[0].domain_accession %}<code>{{ dhs[0].domain_accession }}</code>{% else %}—{% endif %}</td>
@@ -44,6 +44,6 @@
     </div>
     {% endfor %}
   {% else %}
-    <span class="subcluster-no-hits">No subcluster hits in this region.</span>
+    <span class="subcluster-no-predictions">No subcluster predictions in this region.</span>
   {% endif %}
 </div>
