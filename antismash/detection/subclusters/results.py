@@ -118,6 +118,12 @@ class SubclusterDetectionResults(DetectionResults):
         self.rule_results = rule_results
         self.rule_names = rule_names
         self.strictness = strictness
+        # The shared rule-based detection pipeline hardcodes the protocluster
+        # "aStool" qualifier to "rule-based-clusters". These protoclusters were
+        # produced by this module, so relabel them with this module's tool name
+        # to avoid the misleading qualifier in the output.
+        for protocluster in self.rule_results.protoclusters:
+            protocluster.tool = self.rule_results.tool
         self.hits = [
             SubclusterPrediction(
                 rule_name=protocluster.product,
