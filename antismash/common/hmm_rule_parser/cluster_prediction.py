@@ -493,6 +493,7 @@ def find_protoclusters(record: Record, cds_by_cluster_type: Dict[str, Set[str]],
                        rules_by_name: dict[str, rule_parser.DetectionRule],
                        results_by_id: dict[str, list[ProfileHit]],
                        cds_domains_by_cluster: dict[str, dict[str, set[str]]],
+                       tool: str = "rule-based-clusters",
                        ) -> list[Protocluster]:
     """ Detects gene clusters based on the identified core genes
 
@@ -505,6 +506,7 @@ def find_protoclusters(record: Record, cds_by_cluster_type: Dict[str, Set[str]],
             cds_domains_by_cluster: a mapping of CDS ID to
                     a mapping of cluster type string to
                         a set of domains used to determine the cluster
+            tool: the name of the calling tool/module, used only to label log output
 
         Returns:
             a list of Protocluster instances that were found
@@ -560,7 +562,7 @@ def find_protoclusters(record: Record, cds_by_cluster_type: Dict[str, Set[str]],
 
     clusters = merge_over_origin(clusters, record)
 
-    logging.debug("%d rule-based cluster(s) found in record", len(clusters))
+    logging.debug("%s: %d rule-based cluster(s) found in record", tool, len(clusters))
     return clusters
 
 
@@ -959,7 +961,8 @@ def detect_protoclusters_and_signatures(record: Record, ruleset: Ruleset,
 
     # annotate everything in detected protoclusters
     rules_by_name = {rule.name: rule for rule in ruleset.rules}
-    clusters = find_protoclusters(record, cluster_type_hits, rules_by_name, results_by_id, cds_domains_by_cluster)
+    clusters = find_protoclusters(record, cluster_type_hits, rules_by_name, results_by_id, cds_domains_by_cluster,
+                                  tool=ruleset.tool)
     strip_inferior_domains(cds_domains_by_cluster, rules_by_name)
 
     return build_results(clusters, record, ruleset.tool, results_by_id, cds_domains_by_cluster,
