@@ -2,7 +2,7 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Any, Optional, Self
+from typing import Any, Mapping, Optional, Self
 
 from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
 from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults, RuleDetectionResults
@@ -12,12 +12,12 @@ from antismash.common.secmet.locations import FeatureLocation, location_contains
 
 from .compounds import CompoundInfo, get_subcluster_compounds
 from .ruleset import get_ruleset
-from .signatures import SubclusterHmmSignature, get_subcluster_profiles
+from .signatures import SubclusterHmmSignature, get_signature_profiles_by_name
 
 
 @dataclass(frozen=True)
 class CDSDomainHit:
-    """A single profile match found in a specific CDS."""
+    """A single signature match found in a specific CDS."""
     domain_name: str
     domain_description: Optional[str]
     domain_accession: Optional[str]
@@ -61,7 +61,7 @@ class SubclusterPrediction:
     @cached_property
     def domain_hits(self) -> list[CDSDomainHit]:
         """A flat list of every domain hit, each paired with its CDS name."""
-        profiles: dict[str, SubclusterHmmSignature] = get_subcluster_profiles()
+        signatures: Mapping[str, SubclusterHmmSignature] = get_signature_profiles_by_name()
         hits: list[CDSDomainHit] = []
         for cds_result in self.cds_results:
             cds_name = cds_result.cds.get_name()
@@ -69,11 +69,11 @@ class SubclusterPrediction:
             for domain_name in sorted(fired):
                 matching = [d for d in cds_result.domains if d.name == domain_name]
                 best = max(matching, key=lambda d: d.bitscore) if matching else None
-                profile = profiles[domain_name]
+                signature = signatures[domain_name]
                 hits.append(CDSDomainHit(
-                    domain_name=profile.name,
-                    domain_description=profile.description,
-                    domain_accession=profile.accession,
+                    domain_name=signature.name,
+                    domain_description=signature.description,
+                    domain_accession=signature.accession,
                     cds_name=cds_name,
                     evalue=best.evalue if best else None,
                     bitscore=best.bitscore if best else None,
