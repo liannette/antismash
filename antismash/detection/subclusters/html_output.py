@@ -11,7 +11,6 @@ from antismash.common.secmet import Record, Region
 from antismash.common.secmet.locations import FeatureLocation
 from antismash.config import ConfigType
 
-from .compounds import CompoundInfo
 from .results import SubclusterDetectionResults, SubclusterPrediction
 
 
@@ -41,9 +40,8 @@ def _get_fake_predictions() -> list[SubclusterPrediction]:
         return results
 
     prediction_a = SubclusterPrediction(
-        rule_name="SCG0006",
         core_location=FeatureLocation(17346, 21101),
-        cds_results=_fake_cds_results("SCG0006", {
+        cds_results=_fake_cds_results("SCG0041", {
             "AJAP_31990": [("ECH_1", 1.2e-18, 65.3)],
             "AJAP_31995": [("ECH_1", 3.4e-21, 72.1)],
             "AJAP_32000": [("ECH_1", 8.7e-20, 68.9)],
@@ -53,18 +51,13 @@ def _get_fake_predictions() -> list[SubclusterPrediction]:
             ],
         }),
         rule=SimpleNamespace(
+            name="SCG0041",
             conditions="ECH_1 and cds(Chal_sti_synt_C and Chal_sti_synt_N)",
             description="3,5-Dihydroxyphenylglycine (Dhpg)",
-        ),
-        compound=CompoundInfo(
-            name="3,5-Dihydroxyphenylglycine (Dhpg)",
-            smiles="C1=C(O)C=C(O)C=C1[C@@H](C(=O)O)N",
-            classification=["amino acid", "precursor"],
         ),
     )
 
     prediction_b = SubclusterPrediction(
-        rule_name="SCG0042",
         core_location=FeatureLocation(27326, 80190),
         cds_results=_fake_cds_results("SCG0042", {
             "AJAP_32035": [("FMN_dh", 4.1e-29, 98.7)],
@@ -76,13 +69,9 @@ def _get_fake_predictions() -> list[SubclusterPrediction]:
             ],
         }),
         rule=SimpleNamespace(
+            name="SCG0042",
             conditions="cds(PDH_N and PDH_C) and Aminotran_1_2 and Glyoxalase_4 and FMN_dh",
             description="4-Hydroxyphenylglycine (Hpg)",
-        ),
-        compound=CompoundInfo(
-            name="4-Hydroxyphenylglycine (Hpg)",
-            smiles="C1=CC(=CC=C1C(C(=O)O)N)O",
-            classification=["amino acid", "precursor"],
         ),
     )
 

@@ -6,9 +6,9 @@ from antismash.common.hmm_rule_parser.cluster_prediction import Ruleset
 
 from .signatures import get_signature_profiles_by_name
 
-# Strictness levels are cumulative: each level includes all levels above it.
-# Add new levels here and provide a matching rule file in subcluster_rules/.
-_STRICTNESS_LEVELS = ("strict",)
+# Strictness levels are cumulative: each level includes all levels above it,
+# ordered from most to least strict.
+_STRICTNESS_LEVELS = ("strict", "relaxed", "loose")
 
 # Categories referenced across all rule files, should always be "Subcluster"
 _CATEGORIES = {"Subcluster"}
@@ -18,7 +18,7 @@ _HMM_FILE = path.get_full_path(__file__, "data", "subclusters.hmm")
 _CACHE: dict[str, Ruleset] = {}
 
 
-def get_ruleset(strictness: str = "strict") -> Ruleset:
+def get_ruleset(strictness: str) -> Ruleset:
     """Return a Ruleset for the given strictness level.
 
     Results are cached per strictness level.

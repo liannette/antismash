@@ -30,7 +30,7 @@ class SubclusterPrediction:
     """A single predicted subcluster, used as a view object for HTML rendering.
 
     Attributes:
-        rule_name: Name of the ``DetectionRule`` that fired.
+        rule: The ``DetectionRule`` that fired.
         core_location: Location of the protocluster core that produced this prediction.
         cds_results: ``CDSResults`` instances for every CDS that contributed
             to this prediction, as returned by the rule-based detection pipeline.
@@ -38,18 +38,24 @@ class SubclusterPrediction:
 
     def __init__(
             self,
-            rule_name: str,
+            *,
+            rule: DetectionRule,
             core_location: FeatureLocation,
             cds_results: list[CDSResults],
-            *,
-            rule: Optional[DetectionRule] = None,
-            compound: Optional[CompoundInfo] = None,
     ) -> None:
-        self.rule_name = rule_name
+        self.rule = rule
         self.core_location = core_location
         self.cds_results = cds_results
-        self.rule = rule if rule is not None else get_ruleset().get_rule_by_name(rule_name)
-        self.compound = compound if compound is not None else get_subcluster_compounds().get(rule_name)
+
+    @property
+    def rule_name(self) -> str:
+        """Name of the ``DetectionRule`` that fired."""
+        return self.rule.name
+
+    @cached_property
+    def compound(self) -> Optional[CompoundInfo]:
+        """The compound associated with the fired rule, if one is known."""
+        return get_subcluster_compounds().get(self.rule.name)
 
     @property
     def conditions_str(self) -> str:
@@ -112,21 +118,16 @@ class SubclusterDetectionResults(DetectionResults):
             record_id: str,
             rule_results: RuleDetectionResults,
             rule_names: set[str],
-            strictness: str = "strict",
+            strictness: str,
     ) -> None:
         super().__init__(record_id)
         self.rule_results = rule_results
         self.rule_names = rule_names
         self.strictness = strictness
-        # The shared rule-based detection pipeline hardcodes the protocluster
-        # "aStool" qualifier to "rule-based-clusters". These protoclusters were
-        # produced by this module, so relabel them with this module's tool name
-        # to avoid the misleading qualifier in the output.
-        for protocluster in self.rule_results.protoclusters:
-            protocluster.tool = self.rule_results.tool
+        ruleset = get_ruleset(self.strictness)
         self.predictions = [
             SubclusterPrediction(
-                rule_name=protocluster.product,
+                rule=ruleset.get_rule_by_name(protocluster.product),
                 core_location=protocluster.core_location,
                 cds_results=cds_results,
             )
@@ -177,7 +178,7 @@ class SubclusterDetectionResults(DetectionResults):
             record_id=data["record_id"],
             rule_results=rule_results,
             rule_names=set(data.get("rule_names", [])),
-            strictness=data.get("strictness", "strict"),
+            strictness=data["strictness"],
         )
 
     def add_to_record(self, record: Record) -> None:

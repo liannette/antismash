@@ -15,7 +15,7 @@ from antismash.config.args import ModuleArgs
 from antismash.detection import DetectionStage
 
 from .results import SubclusterDetectionResults
-from .ruleset import get_ruleset
+from .ruleset import get_ruleset, _STRICTNESS_LEVELS
 from .signatures import get_signature_profiles
 from .html_output import generate_html, will_handle, generate_javascript_data
 
@@ -37,6 +37,15 @@ def get_arguments() -> ModuleArgs:
                              default=False,
                              action='store_true',
                              help="Run Subcluster detection.")
+    args.add_option('strictness',
+                    dest='strictness',
+                    type=str,
+                    choices=list(_STRICTNESS_LEVELS),
+                    default="relaxed",
+                    help=("Defines which level of strictness to use for "
+                          "subcluster detection. Levels are cumulative, so "
+                          "looser levels also include all stricter rules "
+                          "(default: %(default)s)."))
     return args
 
 
@@ -44,6 +53,8 @@ def check_options(options: ConfigType) -> list[str]:
     """ Checks the options to see if there are any issues before
         running any analyses
     """
+    if options.subclusters_strictness not in _STRICTNESS_LEVELS:
+        return [f"Unknown subcluster strictness level: {options.subclusters_strictness}"]
     return []
 
 
@@ -111,8 +122,7 @@ def check_prereqs(options: ConfigType) -> list[str]:
 
 def _get_strictness(options: ConfigType) -> str:
     """ Returns the subcluster detection strictness to use for the given options. """
-    # TODO: replace "strict" with options.subclusters_strictness once that option exists
-    return "strict"
+    return options.subclusters_strictness
 
 
 def regenerate_previous_results(results: dict[str, Any], record: Record,
@@ -147,6 +157,13 @@ def run_on_record(record: Record, previous_results: Optional[SubclusterDetection
     current_strictness = _get_strictness(options)
     ruleset = get_ruleset(current_strictness)
     rule_results = detect_protoclusters_and_signatures(record, ruleset)
+
+    # The shared rule-based detection pipeline hardcodes the protocluster
+    # "aStool" qualifier to "rule-based-clusters". These protoclusters were
+    # produced by this module, so relabel them with this module's tool name
+    # to avoid the misleading qualifier in the output.
+    for protocluster in rule_results.protoclusters:
+        protocluster.tool = rule_results.tool
 
     return SubclusterDetectionResults(
         record_id=record.id,
