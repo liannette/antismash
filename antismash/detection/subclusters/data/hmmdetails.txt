@@ -1,9 +1,21 @@
+4HBT_2	Thioesterase-like superfamily	25	4HBT_2.hmm	PF13279.13
+Acyl_transf_1	Acyl transferase domain	32	Acyl_transf_1.hmm	PF00698.27
+adh_short	short chain dehydrogenase	26	adh_short.hmm	PF00106.32
 Aminotran_1_2	Aminotransferase class I and II	19	Aminotran_1_2.hmm	PF00155.24
 Chal_sti_synt_C	Chalcone and stilbene synthases, C-terminal domain	27	Chal_sti_synt_C.hmm	PF02797.22
 Chal_sti_synt_N	Chalcone and stilbene synthases, N-terminal domain	27	Chal_sti_synt_N.hmm	PF00195.26
+DUF1702	Protein of unknown function (DUF1702)	31	DUF1702.hmm	PF08012.17
 ECH_1	Enoyl-CoA hydratase/isomerase	27	ECH_1.hmm	PF00378.26
+FG-GAP_3	FG-GAP-like repeat	26	FG-GAP_3.hmm	PF13517.13
 FMN_dh	FMN-dependent dehydrogenase	24	FMN_dh.hmm	PF01070.21
 Glyoxalase_4	Glyoxalase/Bleomycin resistance protein/Dioxygenase superfamily	27	Glyoxalase_4.hmm	PF13669.9
 Glyoxalase	Glyoxalase/Bleomycin resistance protein/Dioxygenase superfamily	20	Glyoxalase.hmm	PF00903.32
+KAsynt_C_assoc	Ketoacyl-synthetase C-terminal extension	33	KAsynt_C_assoc.hmm	PF16197.12
+Ketoacyl-synt_C	Beta-ketoacyl synthase, C-terminal domain	20	Ketoacyl-synt_C.hmm	PF02801.29
+ketoacyl-synt	Beta-ketoacyl synthase, N-terminal domain	20	ketoacyl-synt.hmm	PF00109.33
+KR	KR domain	22	KR.hmm	PF08659.17
 PDH_C	Prephenate dehydrogenase, dimerization domain	22	PDH_C.hmm	PF20463.1
 PDH_N	Prephenate dehydrogenase, nucleotide-binding domain	26	PDH_N.hmm	PF02153.20
+PKS_DH_N	Polyketide synthase dehydratase domain	27	PKS_DH_N.hmm	PF21089.4
+PS-DH	Polyketide synthase dehydratase N-terminal domain	23	PS-DH.hmm	PF14765.13
+UnbV_ASPIC	ASPIC and UnbV	23	UnbV_ASPIC.hmm	PF07593.19
