@@ -53,6 +53,16 @@ def get_arguments() -> ModuleArgs:
                     help=("Treat detected subclusters as subregions so they "
                           "seed and extend regions during region formation, "
                           "(default: %(default)s)."))
+    args.add_option('require-overlap',
+                    dest='require_overlap',
+                    action='store_true',
+                    default=False,
+                    help=("Only relevant with --subclusters-as-subregions: keep "
+                          "a subcluster subregion only if it overlaps a cluster "
+                          "found by another detection module, so subclusters can "
+                          "extend existing regions but never create new regions "
+                          "on their own or merge with each other "
+                          "(default: %(default)s)."))
     return args
 
 
@@ -62,6 +72,12 @@ def check_options(options: ConfigType) -> list[str]:
     """
     if options.subclusters_strictness not in _STRICTNESS_LEVELS:
         return [f"Unknown subcluster strictness level: {options.subclusters_strictness}"]
+
+    if options.subclusters_require_overlap and not options.subclusters_as_subregions:
+        logging.warning("--subclusters-require-overlap has no effect without "
+                        "--subclusters-as-subregions; subclusters will not be "
+                        "treated as subregions")
+
     return []
 
 
@@ -179,5 +195,7 @@ def run_on_record(record: Record, previous_results: Optional[SubclusterDetection
         rule_names=ruleset.get_rule_names(),
         strictness=current_strictness,
         as_subregions=options.subclusters_as_subregions,
+        require_overlap=options.subclusters_require_overlap,
+        record=record,
     )
 

@@ -8,7 +8,11 @@ from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
 from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults, RuleDetectionResults
 from antismash.common.module_results import DetectionResults
 from antismash.common.secmet import Record, Region, SubRegion
-from antismash.common.secmet.locations import FeatureLocation, location_contains_other
+from antismash.common.secmet.locations import (
+    FeatureLocation,
+    location_contains_other,
+    locations_overlap,
+)
 
 from .compounds import CompoundInfo, get_subcluster_compounds
 from .ruleset import get_ruleset
@@ -120,6 +124,8 @@ class SubclusterDetectionResults(DetectionResults):
             rule_names: set[str],
             strictness: str,
             as_subregions: bool = False,
+            require_overlap: bool = False,
+            record: Optional[Record] = None,
     ) -> None:
         super().__init__(record_id)
         self.rule_results = rule_results
@@ -128,6 +134,13 @@ class SubclusterDetectionResults(DetectionResults):
         # when True, each detected subcluster protocluster is exposed as a
         # SubRegion so that it participates in (and extends) region formation
         self.as_subregions = as_subregions
+        # when True, only subclusters that overlap a cluster found by another
+        # detection module are emitted, so subclusters can extend existing
+        # regions but never form standalone regions (or merge with each other)
+        self.require_overlap = require_overlap
+        # the record being analysed, needed to look up clusters from other
+        # detection modules when require_overlap is enabled
+        self._record = record
         ruleset = get_ruleset(self.strictness)
         self.predictions = [
             SubclusterPrediction(
@@ -165,10 +178,36 @@ class SubclusterDetectionResults(DetectionResults):
         """
         if not self.as_subregions:
             return []
-        return [
+        subregions = [
             SubRegion(protocluster.location, tool=self.rule_results.tool,
                       label=protocluster.product)
             for protocluster in self.rule_results.protoclusters
+        ]
+        if not self.require_overlap:
+            return subregions
+
+        # keep only subclusters overlapping a cluster from another detection
+        # module; the rest are dropped so they neither seed new regions nor
+        # merge with one another
+        existing = [protocluster.location for protocluster in self._foreign_protoclusters()]
+        return [
+            subregion for subregion in subregions
+            if any(locations_overlap(subregion.location, location) for location in existing)
+        ]
+
+    def _foreign_protoclusters(self) -> list:
+        """Protoclusters on the record produced by other detection modules.
+
+        Used by ``require_overlap`` to decide which subclusters may extend an
+        existing region. Region features do not exist yet at the point this
+        runs, so overlap is tested against the protoclusters that other
+        modules (e.g. ``hmm_detection``) have already added to the record.
+        """
+        if self._record is None:
+            return []
+        return [
+            protocluster for protocluster in self._record.get_protoclusters()
+            if protocluster.tool != self.rule_results.tool
         ]
 
     def to_json(self) -> dict[str, Any]:
@@ -177,6 +216,7 @@ class SubclusterDetectionResults(DetectionResults):
             "record_id": self.record_id,
             "strictness": self.strictness,
             "as_subregions": self.as_subregions,
+            "require_overlap": self.require_overlap,
             "rule_names": sorted(self.rule_names),
             "rule_results": self.rule_results.to_json(),
         }
@@ -201,6 +241,8 @@ class SubclusterDetectionResults(DetectionResults):
             rule_names=set(data.get("rule_names", [])),
             strictness=data["strictness"],
             as_subregions=data.get("as_subregions", False),
+            require_overlap=data.get("require_overlap", False),
+            record=record,
         )
 
     def add_to_record(self, record: Record) -> None:
