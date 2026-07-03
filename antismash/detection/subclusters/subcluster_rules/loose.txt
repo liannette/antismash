@@ -1,0 +1,4 @@
+# Contains rules for putative subclusters defined by a minimal signature,
+# maximising sensitivity at the cost of specificity (more false positives expected)
+
+# Cutoffs and neighbourhoods are given in kilobases
