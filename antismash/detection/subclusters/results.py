@@ -7,7 +7,7 @@ from typing import Any, Mapping, Optional, Self
 from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
 from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults, RuleDetectionResults
 from antismash.common.module_results import DetectionResults
-from antismash.common.secmet import Record, Region
+from antismash.common.secmet import Record, Region, SubRegion
 from antismash.common.secmet.locations import FeatureLocation, location_contains_other
 
 from .compounds import CompoundInfo, get_subcluster_compounds
@@ -119,11 +119,15 @@ class SubclusterDetectionResults(DetectionResults):
             rule_results: RuleDetectionResults,
             rule_names: set[str],
             strictness: str,
+            as_subregions: bool = False,
     ) -> None:
         super().__init__(record_id)
         self.rule_results = rule_results
         self.rule_names = rule_names
         self.strictness = strictness
+        # when True, each detected subcluster protocluster is exposed as a
+        # SubRegion so that it participates in (and extends) region formation
+        self.as_subregions = as_subregions
         ruleset = get_ruleset(self.strictness)
         self.predictions = [
             SubclusterPrediction(
@@ -151,11 +155,28 @@ class SubclusterDetectionResults(DetectionResults):
             )
         ]
 
+    def get_predicted_subregions(self) -> list[SubRegion]:
+        """Return each detected subcluster as a SubRegion.
+
+        When ``as_subregions`` is enabled these are added to the record during
+        the region-formation step (see ``antismash.main``), letting subclusters
+        seed or extend regions. When disabled, an empty list is returned and
+        subclusters remain display-only annotations within existing regions.
+        """
+        if not self.as_subregions:
+            return []
+        return [
+            SubRegion(protocluster.location, tool=self.rule_results.tool,
+                      label=protocluster.product)
+            for protocluster in self.rule_results.protoclusters
+        ]
+
     def to_json(self) -> dict[str, Any]:
         return {
             "schema_version": self.schema_version,
             "record_id": self.record_id,
             "strictness": self.strictness,
+            "as_subregions": self.as_subregions,
             "rule_names": sorted(self.rule_names),
             "rule_results": self.rule_results.to_json(),
         }
@@ -179,6 +200,7 @@ class SubclusterDetectionResults(DetectionResults):
             rule_results=rule_results,
             rule_names=set(data.get("rule_names", [])),
             strictness=data["strictness"],
+            as_subregions=data.get("as_subregions", False),
         )
 
     def add_to_record(self, record: Record) -> None:

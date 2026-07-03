@@ -46,6 +46,13 @@ def get_arguments() -> ModuleArgs:
                           "subcluster detection. Levels are cumulative, so "
                           "looser levels also include all stricter rules "
                           "(default: %(default)s)."))
+    args.add_option('as-subregions',
+                    dest='as_subregions',
+                    action='store_true',
+                    default=False,
+                    help=("Treat detected subclusters as subregions so they "
+                          "seed and extend regions during region formation, "
+                          "(default: %(default)s)."))
     return args
 
 
@@ -128,6 +135,7 @@ def _get_strictness(options: ConfigType) -> str:
 def regenerate_previous_results(results: dict[str, Any], record: Record,
                                 options: ConfigType) -> Optional[SubclusterDetectionResults]:
     """Regenerate previous results."""
+    return None
     if not results:
         return None
     previous = SubclusterDetectionResults.from_json(results, record)
@@ -170,5 +178,6 @@ def run_on_record(record: Record, previous_results: Optional[SubclusterDetection
         rule_results=rule_results,
         rule_names=ruleset.get_rule_names(),
         strictness=current_strictness,
+        as_subregions=options.subclusters_as_subregions,
     )
 
