@@ -5,7 +5,7 @@
 RULE SCG0041
     CATEGORY Subcluster
     DESCRIPTION 3,5-Dihydroxyphenylglycine (Dhpg)
-    CUTOFF 60
+    CUTOFF 50
     NEIGHBOURHOOD 0
     CONDITIONS cds(Chal_sti_synt_N and Chal_sti_synt_C)
                and Aminotran_1_2 
@@ -14,7 +14,7 @@ RULE SCG0041
 RULE SCG0042
     CATEGORY Subcluster
     DESCRIPTION 4-Hydroxyphenylglycine (Hpg) 
-    CUTOFF 60
+    CUTOFF 50
     NEIGHBOURHOOD 0
     CONDITIONS cds(PDH_N and PDH_C) 
                and Aminotran_1_2 
