@@ -52,3 +52,4 @@ nisin/*
 !antismash/common/subprocessing/test/data/*
 # the docker container files should always be kept
 !docker
+antismash/detection/subclusters/data/subclusters.hmm
