@@ -1897,8 +1897,8 @@ ul.dropdown-options {
         margin-right: 1.5em;
 
         .rule-name {
+            @extend .serif;
             margin-left: auto;
-            font-family: "Courier New", serif;
             font-weight: bold;
         }
 
