@@ -74,9 +74,8 @@ def check_options(options: ConfigType) -> list[str]:
         return [f"Unknown subcluster strictness level: {options.subclusters_strictness}"]
 
     if options.subclusters_require_overlap and not options.subclusters_as_subregions:
-        logging.warning("--subclusters-require-overlap has no effect without "
-                        "--subclusters-as-subregions; subclusters will not be "
-                        "treated as subregions")
+        return ["--subclusters-require-overlap requires "
+                "--subclusters-as-subregions"]
 
     return []
 
