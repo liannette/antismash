@@ -28,7 +28,7 @@ def get_arguments() -> ModuleArgs:
     """ Constructs commandline arguments and options for this module
 
         Returns:
-            an empty or populated ModuleArgs instance
+            an empty or populated set of module arguments
     """
     args = ModuleArgs("Subcluster detection options", "subclusters")
 
@@ -91,9 +91,8 @@ def prepare_data(logging_only: bool = False) -> list[str]:
     """ Ensures packaged data is fully prepared.
 
         Aggregates the individual subcluster HMM signatures into a single
-        ``subclusters.hmm`` file and presses it with hmmpress, regenerating
-        either whenever they are missing or out of date. Mirrors the
-        ``hmm_detection`` module's handling of ``bgc_seeds.hmm``.
+        combined profile database and presses it with hmmpress, regenerating
+        whenever it is missing or out of date. 
 
         Arguments:
             logging_only: whether to return error messages instead of raising exceptions
@@ -112,7 +111,6 @@ def prepare_data(logging_only: bool = False) -> list[str]:
         return [str(err)]
 
     aggregate_hmm = path.get_full_path(__file__, "data", "subclusters.hmm")
-    # SubclusterHmmSignature.hmm_file is already an absolute path
     hmm_files = [signature.hmm_file for signature in signatures]
 
     description_file = path.get_full_path(__file__, "data", "hmmdetails.txt")

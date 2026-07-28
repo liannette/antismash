@@ -34,10 +34,10 @@ class SubclusterPrediction:
     """A single predicted subcluster, used as a view object for HTML rendering.
 
     Attributes:
-        rule: The ``DetectionRule`` that fired.
-        core_location: Location of the protocluster core that produced this prediction.
-        cds_results: ``CDSResults`` instances for every CDS that contributed
-            to this prediction, as returned by the rule-based detection pipeline.
+        rule: The detection rule whose conditions were met
+        core_location: location of the protocluster core that produced this prediction
+        cds_results: the per-CDS detection results for every CDS that contributed
+            to this prediction, as returned by the detection pipeline
     """
 
     def __init__(
@@ -53,12 +53,12 @@ class SubclusterPrediction:
 
     @property
     def rule_name(self) -> str:
-        """Name of the ``DetectionRule`` that fired."""
+        """Name of the matching detection rule."""
         return self.rule.name
 
     @cached_property
     def compound(self) -> Optional[CompoundInfo]:
-        """The compound associated with the fired rule, if one is known."""
+        """The compound associated with the detection rule, if one is known."""
         return get_subcluster_compounds().get(self.rule.name)
 
     @property
@@ -132,7 +132,7 @@ class SubclusterDetectionResults(DetectionResults):
         self.rule_names = rule_names
         self.strictness = strictness
         # when True, each detected subcluster protocluster is exposed as a
-        # SubRegion so that it participates in (and extends) region formation
+        # sub-region feature so that it is part of the region formation step
         self.as_subregions = as_subregions
         # when True, only subclusters that overlap a cluster found by another
         # detection module are emitted, so subclusters can extend existing
@@ -169,12 +169,13 @@ class SubclusterDetectionResults(DetectionResults):
         ]
 
     def get_predicted_subregions(self) -> list[SubRegion]:
-        """Return each detected subcluster as a SubRegion.
+        """Return each detected subcluster as a sub-region feature.
 
-        When ``as_subregions`` is enabled these are added to the record during
-        the region-formation step (see ``antismash.main``), letting subclusters
-        seed or extend regions. When disabled, an empty list is returned and
-        subclusters remain display-only annotations within existing regions.
+        When enabled by the corresponding option, these are added to the record
+        during the region-formation step of the main pipeline, letting subclusters
+        form new regions or extend existing ones. When disabled, an empty list is
+        returned and subclusters remain display-only annotations within existing
+        regions.
         """
         if not self.as_subregions:
             return []
@@ -198,10 +199,10 @@ class SubclusterDetectionResults(DetectionResults):
     def _foreign_protoclusters(self) -> list:
         """Protoclusters on the record produced by other detection modules.
 
-        Used by ``require_overlap`` to decide which subclusters may extend an
-        existing region. Region features do not exist yet at the point this
+        Used when overlap is required, to decide which subclusters may extend
+        an existing region. Region features do not exist yet at the point this
         runs, so overlap is tested against the protoclusters that other
-        modules (e.g. ``hmm_detection``) have already added to the record.
+        detection modules have already added to the record.
         """
         if self._record is None:
             return []
@@ -232,7 +233,7 @@ class SubclusterDetectionResults(DetectionResults):
         
         rule_results = RuleDetectionResults.from_json(data["rule_results"], record)
         if rule_results is None:
-            logging.debug("Discarding subcluster results: RuleDetectionResults schema changed")
+            logging.debug("Discarding subcluster results: rule detection result schema changed")
             return None
         
         return cls(

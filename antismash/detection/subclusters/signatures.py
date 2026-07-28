@@ -52,7 +52,7 @@ def get_signature_profiles_by_name() -> Mapping[str, SubclusterHmmSignature]:
 
 
 def _read_signatures(detail_file: str) -> list[SubclusterHmmSignature]:
-    """Parse a 5-column hmmdetails TSV into SubclusterHmmSignature objects.
+    """Parse a 5-column hmmdetails TSV into signature objects.
 
     Columns (tab-separated): name  description  cutoff  hmm_file  [accession]
     The accession column is optional; omitted or blank entries get accession=None.

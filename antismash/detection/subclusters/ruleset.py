@@ -19,15 +19,16 @@ _CACHE: dict[str, Ruleset] = {}
 
 
 def get_ruleset(strictness: str) -> Ruleset:
-    """Return a Ruleset for the given strictness level.
+    """Return the parsed rules and signatures for the given strictness level.
 
     Results are cached per strictness level.
 
     Arguments:
-        strictness: one of the levels defined in ``_STRICTNESS_LEVELS``
+        strictness: one of the supported strictness levels, from most to
+            least strict
 
     Returns:
-        a configured ``Ruleset`` instance
+        a ruleset ready for use by the rule-based detection pipeline
     """
     if strictness not in _STRICTNESS_LEVELS:
         raise ValueError(f"Unknown strictness level {strictness!r}. "
