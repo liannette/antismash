@@ -1,8 +1,7 @@
 """Ruleset construction for the subcluster detection module."""
 
 from antismash.common import path
-from antismash.common.hmm_rule_parser import rule_parser
-from antismash.common.hmm_rule_parser.cluster_prediction import Ruleset
+from antismash.common.hmm_rule_parser.cluster_prediction import Ruleset, create_rules
 
 from .signatures import get_signature_profiles_by_name
 
@@ -54,14 +53,7 @@ def _rule_files_for_strictness(strictness: str) -> list[str]:
 
 def _build_ruleset(strictness: str) -> Ruleset:
     signatures = get_signature_profiles_by_name()
-
-    rules: list[rule_parser.DetectionRule] = []
-    aliases: dict[str, list[rule_parser.Token]] = {}
-    for rule_file in _rule_files_for_strictness(strictness):
-        with open(rule_file, encoding="utf-8") as f:
-            rules = rule_parser.Parser(
-                f.read(), set(signatures), _CATEGORIES, rules, aliases,
-            ).rules
+    rules = create_rules(_rule_files_for_strictness(strictness), set(signatures), _CATEGORIES)
 
     return Ruleset(
         tuple(rules),
