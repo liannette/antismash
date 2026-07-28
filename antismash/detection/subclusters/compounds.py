@@ -17,12 +17,31 @@ class CompoundInfo:
 _COMPOUND_CACHE: dict[str, CompoundInfo] = {}
 
 
-def get_subcluster_compounds() -> dict[str, CompoundInfo]:
-    """Return all subcluster compound metadata, loading from disk on first call."""
-    if not _COMPOUND_CACHE:
-        filename = path.get_full_path(__file__, "data", "compound_details.txt")
-        _COMPOUND_CACHE.update(_read_compounds(filename))
-    return dict(_COMPOUND_CACHE)
+def _ensure_compounds_loaded() -> None:
+    """Load the compound details from disk into the cache, once."""
+    if _COMPOUND_CACHE:
+        return
+    filename = path.get_full_path(__file__, "data", "compound_details.txt")
+    _COMPOUND_CACHE.update(_read_compounds(filename))
+
+
+def get_compound(rule_name: str) -> CompoundInfo:
+    """Return the compound metadata for a single rule, loading from disk on
+    first call.
+
+    Arguments:
+        rule_name: the name of the detection rule
+
+    Returns:
+        the compound associated with the rule
+
+    Raises:
+        ValueError: if the rule has no entry in the compound details file
+    """
+    _ensure_compounds_loaded()
+    if rule_name not in _COMPOUND_CACHE:
+        raise ValueError(f"No compound details for subcluster rule {rule_name!r}")
+    return _COMPOUND_CACHE[rule_name]
 
 
 def _read_compounds(detail_file: str) -> dict[str, CompoundInfo]:

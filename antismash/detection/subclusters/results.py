@@ -14,7 +14,7 @@ from antismash.common.secmet.locations import (
     locations_overlap,
 )
 
-from .compounds import CompoundInfo, get_subcluster_compounds
+from .compounds import CompoundInfo, get_compound
 from .ruleset import get_ruleset
 from .signatures import SubclusterHmmSignature, get_signature_profiles_by_name
 
@@ -57,9 +57,12 @@ class SubclusterPrediction:
         return self.rule.name
 
     @cached_property
-    def compound(self) -> Optional[CompoundInfo]:
-        """The compound associated with the detection rule, if one is known."""
-        return get_subcluster_compounds().get(self.rule.name)
+    def compound(self) -> CompoundInfo:
+        """The compound associated with the detection rule.
+
+        Every rule must have a matching entry in the compound details file.
+        """
+        return get_compound(self.rule.name)
 
     @property
     def conditions_str(self) -> str:
@@ -190,13 +193,13 @@ class SubclusterDetectionResults(DetectionResults):
         # keep only subclusters that overlap with a cluster from another detection
         # module or a subregion; the rest are dropped so they neither create new 
         # regions nor merge with one another
-        existing = [feature.location for feature in self._get_foreign_clusters()]
+        existing = [feature.location for feature in self._foreign_clusters()]
         return [
             subregion for subregion in subregions
             if any(locations_overlap(subregion.location, location) for location in existing)
         ]
 
-    def _get_foreign_clusters(self) -> list[Protocluster | SubRegion]:
+    def _foreign_clusters(self) -> list[Protocluster | SubRegion]:
         """Protoclusters and subregions on the record from other detection modules.
 
         Used when overlap is required, to decide which subclusters may extend
