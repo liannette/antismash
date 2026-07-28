@@ -16,35 +16,51 @@ class SubclusterHmmSignature(HmmSignature):
         self.accession = accession
 
 
-_SIGNATURE_BY_NAME_CACHE: dict[str, SubclusterHmmSignature] = {}
+# the description of every signature used by the module
+DETAILS_FILE = path.get_full_path(__file__, "data", "hmmdetails.txt")
+# the combined profile database built from those signatures by prepare_data()
+AGGREGATE_HMM_FILE = path.get_full_path(__file__, "data", "subclusters.hmm")
+
+_SIGNATURE_CACHE: dict[str, SubclusterHmmSignature] = {}
 
 
 def _ensure_signatures_loaded() -> None:
     """Load the subcluster HMM signatures from disk into the cache, once."""
-    if _SIGNATURE_BY_NAME_CACHE:
+    if _SIGNATURE_CACHE:
         return
-    filename = path.get_full_path(__file__, "data", "hmmdetails.txt")
-    _SIGNATURE_BY_NAME_CACHE.update(
-        (signature.name, signature) for signature in _read_signatures(filename)
-    )
+    signatures = _read_signatures(DETAILS_FILE)
+    _SIGNATURE_CACHE.update((signature.name, signature) for signature in signatures)
+    if len(_SIGNATURE_CACHE) != len(signatures):
+        raise ValueError(f"Duplicate signature names in {DETAILS_FILE}")
 
 
-def get_signature_profiles() -> list[SubclusterHmmSignature]:
-    """Return all subcluster HMM signatures, in file order, loading from disk
+def get_signatures() -> dict[str, SubclusterHmmSignature]:
+    """Return all subcluster HMM signatures, keyed by name, loading from disk
     on first call.
-    """
-    _ensure_signatures_loaded()
-    return list(_SIGNATURE_BY_NAME_CACHE.values())
-
-
-def get_signature_profiles_by_name() -> dict[str, SubclusterHmmSignature]:
-    """Return all subcluster HMM signatures keyed by signature name, loading
-    from disk on first call.
 
     The returned dict is a copy; modifying it does not affect the cache.
     """
     _ensure_signatures_loaded()
-    return dict(_SIGNATURE_BY_NAME_CACHE)
+    return dict(_SIGNATURE_CACHE)
+
+
+def get_signature(name: str) -> SubclusterHmmSignature:
+    """Return a single subcluster HMM signature by name, loading from disk on
+    first call.
+
+    Arguments:
+        name: the name of the signature
+
+    Returns:
+        the matching signature
+
+    Raises:
+        ValueError: if no signature with that name exists
+    """
+    _ensure_signatures_loaded()
+    if name not in _SIGNATURE_CACHE:
+        raise ValueError(f"Unknown subcluster signature {name!r}")
+    return _SIGNATURE_CACHE[name]
 
 
 def _read_signatures(detail_file: str) -> list[SubclusterHmmSignature]:

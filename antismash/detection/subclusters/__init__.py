@@ -16,7 +16,7 @@ from antismash.detection import DetectionStage
 
 from .results import SubclusterDetectionResults
 from .ruleset import get_ruleset, _STRICTNESS_LEVELS
-from .signatures import get_signature_profiles
+from .signatures import AGGREGATE_HMM_FILE, DETAILS_FILE, get_signatures
 from .html_output import generate_html, will_handle, generate_javascript_data
 
 NAME = "subclusters"
@@ -91,7 +91,7 @@ def prepare_data(logging_only: bool = False) -> list[str]:
 
         Aggregates the individual subcluster HMM signatures into a single
         combined profile database and presses it with hmmpress, regenerating
-        whenever it is missing or out of date. 
+        whenever it is missing or out of date.
 
         Arguments:
             logging_only: whether to return error messages instead of raising exceptions
@@ -100,24 +100,24 @@ def prepare_data(logging_only: bool = False) -> list[str]:
             a list of error messages (only if logging_only is True)
     """
     failure_messages: list[str] = []
-
-    # Check that hmmdetails.txt is readable and well-formatted
+    
+    # check that the signature details are readable and well-formatted
     try:
-        signatures = get_signature_profiles()
+        signatures = get_signatures()
     except ValueError as err:
         if not logging_only:
             raise
         return [str(err)]
+    hmm_files = [signature.hmm_file for signature in signatures.values()]
 
-    aggregate_hmm = path.get_full_path(__file__, "data", "subclusters.hmm")
-    hmm_files = [signature.hmm_file for signature in signatures]
+    # aggregate_profiles only compares the aggregate against the profiles it was built
+    # from, so changes to the details describing them have to be caught here instead
+    force_replace = not (path.locate_file(AGGREGATE_HMM_FILE)
+                         and os.path.getmtime(DETAILS_FILE) < os.path.getmtime(AGGREGATE_HMM_FILE))
 
-    description_file = path.get_full_path(__file__, "data", "hmmdetails.txt")
-    force_replace = not (path.locate_file(aggregate_hmm)
-                         and os.path.getmtime(description_file) < os.path.getmtime(aggregate_hmm))
-
-    failure_messages.extend(hmmer.aggregate_profiles(aggregate_hmm, hmm_files, force_replace=force_replace,
-                                                     return_not_raise=logging_only))
+    failure_messages.extend(hmmer.aggregate_profiles(
+        AGGREGATE_HMM_FILE, hmm_files, force_replace=force_replace, return_not_raise=logging_only)
+        )
 
     return failure_messages
 

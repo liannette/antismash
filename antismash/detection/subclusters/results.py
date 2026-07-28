@@ -2,7 +2,7 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Any, Mapping, Optional, Self
+from typing import Any, Optional, Self
 
 from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
 from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults, RuleDetectionResults
@@ -16,7 +16,7 @@ from antismash.common.secmet.locations import (
 
 from .compounds import CompoundInfo, get_compound
 from .ruleset import get_ruleset
-from .signatures import SubclusterHmmSignature, get_signature_profiles_by_name
+from .signatures import get_signature
 
 
 @dataclass(frozen=True)
@@ -74,7 +74,6 @@ class SubclusterPrediction:
     @cached_property
     def domain_hits(self) -> list[CDSDomainHit]:
         """A flat list of every domain hit, each paired with its CDS name."""
-        signatures: Mapping[str, SubclusterHmmSignature] = get_signature_profiles_by_name()
         hits: list[CDSDomainHit] = []
         for cds_result in self.cds_results:
             cds_name = cds_result.cds.get_name()
@@ -82,7 +81,7 @@ class SubclusterPrediction:
             for domain_name in sorted(fired):
                 matching = [d for d in cds_result.domains if d.name == domain_name]
                 best = max(matching, key=lambda d: d.bitscore) if matching else None
-                signature = signatures[domain_name]
+                signature = get_signature(domain_name)
                 hits.append(CDSDomainHit(
                     domain_name=signature.name,
                     domain_description=signature.description,
