@@ -68,6 +68,6 @@ def _build_ruleset(strictness: str) -> Ruleset:
         dict(signatures),
         _HMM_FILE,
         _CATEGORIES,
-        "rule-based-subclusters",
+        "subclusters",
         equivalence_groups=[],
     )
