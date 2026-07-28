@@ -54,8 +54,7 @@ def get_signature_profiles_by_name() -> Mapping[str, SubclusterHmmSignature]:
 def _read_signatures(detail_file: str) -> list[SubclusterHmmSignature]:
     """Parse a 5-column hmmdetails TSV into signature objects.
 
-    Columns (tab-separated): name  description  cutoff  hmm_file  [accession]
-    The accession column is optional; omitted or blank entries get accession=None.
+    Columns (tab-separated): name  description  cutoff  hmm_file  accession
     """
     bad_lines: list[str] = []
     signatures: list[SubclusterHmmSignature] = []
@@ -64,18 +63,17 @@ def _read_signatures(detail_file: str) -> list[SubclusterHmmSignature]:
             if line.startswith("#") or not line.strip():
                 continue
             try:
-                parts = line.split("\t")
-                name, desc, cutoff, filename = parts[:4]
-                if len(parts) > 4 and parts[4].strip():
-                    accession = parts[4].strip()
-                else:
-                    accession = None
+                name, desc, cutoff, filename, accession = line.split("\t")
             except ValueError:
                 bad_lines.append(line)
                 continue
             signatures.append(SubclusterHmmSignature(
-                name, desc, int(cutoff), path.get_full_path(detail_file, filename),
-                accession=accession))
+                name, 
+                desc, 
+                int(cutoff), 
+                path.get_full_path(detail_file, filename),
+                accession=accession)
+            )
 
     if bad_lines:
         raise ValueError("Invalid lines in HMM detail file (first 10):\n%s" % "\n".join(bad_lines[:10]))
