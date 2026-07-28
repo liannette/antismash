@@ -1,6 +1,5 @@
 """Manages HTML construction for the subcluster detection module."""
 
-from types import SimpleNamespace
 from typing import Optional
 
 from antismash.common import path
@@ -8,10 +7,9 @@ from antismash.common.html_renderer import FileTemplate, HTMLSections, Markup
 from antismash.common.layers import RecordLayer, RegionLayer
 from antismash.common.json import JSONBase
 from antismash.common.secmet import Record, Region
-from antismash.common.secmet.locations import FeatureLocation
 from antismash.config import ConfigType
 
-from .results import SubclusterDetectionResults, SubclusterPrediction
+from .results import SubclusterDetectionResults
 
 
 def will_handle(products: list[str], categories: set[str]) -> bool:
