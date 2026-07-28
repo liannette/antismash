@@ -1,7 +1,6 @@
 """HMM signatures for the subcluster detection module."""
 
-from types import MappingProxyType
-from typing import Mapping, Optional
+from typing import Optional
 
 from antismash.common import path
 from antismash.common.signature import HmmSignature
@@ -17,38 +16,35 @@ class SubclusterHmmSignature(HmmSignature):
         self.accession = accession
 
 
-_SIGNATURE_CACHE: list[SubclusterHmmSignature] = []
 _SIGNATURE_BY_NAME_CACHE: dict[str, SubclusterHmmSignature] = {}
 
 
 def _ensure_signatures_loaded() -> None:
-    """Load the subcluster HMM signatures from disk into the caches, once.
-
-    Both the ordered list and the name-keyed mapping are populated from the
-    same read, so they can never drift out of sync.
-    """
-    if _SIGNATURE_CACHE:
+    """Load the subcluster HMM signatures from disk into the cache, once."""
+    if _SIGNATURE_BY_NAME_CACHE:
         return
     filename = path.get_full_path(__file__, "data", "hmmdetails.txt")
-    _SIGNATURE_CACHE.extend(_read_signatures(filename))
-    _SIGNATURE_BY_NAME_CACHE.update((signature.name, signature) for signature in _SIGNATURE_CACHE)
+    _SIGNATURE_BY_NAME_CACHE.update(
+        (signature.name, signature) for signature in _read_signatures(filename)
+    )
 
 
 def get_signature_profiles() -> list[SubclusterHmmSignature]:
-    """Return all subcluster HMM signatures, loading from disk on first call."""
-    _ensure_signatures_loaded()
-    return list(_SIGNATURE_CACHE)
-
-
-def get_signature_profiles_by_name() -> Mapping[str, SubclusterHmmSignature]:
-    """Return all subcluster HMM signatures keyed by signature name.
-
-    The mapping is built once (when the signatures are first loaded) and returned
-    as a read-only view, so repeated calls stay O(1) regardless of how many
-    signatures the module grows to contain.
+    """Return all subcluster HMM signatures, in file order, loading from disk
+    on first call.
     """
     _ensure_signatures_loaded()
-    return MappingProxyType(_SIGNATURE_BY_NAME_CACHE)
+    return list(_SIGNATURE_BY_NAME_CACHE.values())
+
+
+def get_signature_profiles_by_name() -> dict[str, SubclusterHmmSignature]:
+    """Return all subcluster HMM signatures keyed by signature name, loading
+    from disk on first call.
+
+    The returned dict is a copy; modifying it does not affect the cache.
+    """
+    _ensure_signatures_loaded()
+    return dict(_SIGNATURE_BY_NAME_CACHE)
 
 
 def _read_signatures(detail_file: str) -> list[SubclusterHmmSignature]:
