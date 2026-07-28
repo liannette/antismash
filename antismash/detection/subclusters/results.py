@@ -7,7 +7,7 @@ from typing import Any, Mapping, Optional, Self
 from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
 from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults, RuleDetectionResults
 from antismash.common.module_results import DetectionResults
-from antismash.common.secmet import Record, Region, SubRegion
+from antismash.common.secmet import Protocluster, Record, Region, SubRegion
 from antismash.common.secmet.locations import (
     FeatureLocation,
     location_contains_other,
@@ -187,29 +187,29 @@ class SubclusterDetectionResults(DetectionResults):
         if not self.require_overlap:
             return subregions
 
-        # keep only subclusters overlapping a cluster from another detection
-        # module; the rest are dropped so they neither seed new regions nor
-        # merge with one another
-        existing = [protocluster.location for protocluster in self._foreign_protoclusters()]
+        # keep only subclusters that overlap with a cluster from another detection
+        # module or a subregion; the rest are dropped so they neither create new 
+        # regions nor merge with one another
+        existing = [feature.location for feature in self._get_foreign_clusters()]
         return [
             subregion for subregion in subregions
             if any(locations_overlap(subregion.location, location) for location in existing)
         ]
 
-    def _foreign_protoclusters(self) -> list:
-        """Protoclusters on the record produced by other detection modules.
+    def _get_foreign_clusters(self) -> list[Protocluster | SubRegion]:
+        """Protoclusters and subregions on the record from other detection modules.
 
         Used when overlap is required, to decide which subclusters may extend
         an existing region. Region features do not exist yet at the point this
-        runs, so overlap is tested against the protoclusters that other
-        detection modules have already added to the record.
+        runs, so overlap is tested against the protoclusters and subregions that
+        other detection modules have already added to the record.
         """
         if self._record is None:
             return []
-        return [
-            protocluster for protocluster in self._record.get_protoclusters()
-            if protocluster.tool != self.rule_results.tool
-        ]
+        features: list[Protocluster | SubRegion] = []
+        features.extend(self._record.get_protoclusters())
+        features.extend(self._record.get_subregions())
+        return [feature for feature in features if feature.tool != self.rule_results.tool]
 
     def to_json(self) -> dict[str, Any]:
         return {
