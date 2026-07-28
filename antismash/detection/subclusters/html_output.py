@@ -24,12 +24,10 @@ def generate_html(region_layer: RegionLayer, results: Optional[SubclusterDetecti
     """Build the detail-panel HTML for subcluster predictions in this region."""
     predictions = results.get_predictions_for_region(region_layer.region_feature)
 
-    enum_predictions = list(enumerate(predictions, start=1))
-
     tooltip = Markup("Subclusters are sets of genes responsible for producing a specific chemical moiety.")
 
     template = FileTemplate(path.get_full_path(__file__, "templates", "details.html"))
-    section = template.render(enum_predictions=enum_predictions, tooltip=tooltip, anchor=region_layer.anchor_id)
+    section = template.render(predictions=predictions, tooltip=tooltip, anchor=region_layer.anchor_id)
 
     html = HTMLSections(name="subclusters")
     html.add_detail_section("Subclusters", section, class_name="subclusters")
