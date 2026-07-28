@@ -42,9 +42,9 @@ def generate_javascript_data(record: Record, region: Region,
 
     predictions = results.get_predictions_for_region(region)
 
-    javascript_data = []
+    data = []
     for i, prediction in enumerate(predictions, start=1):
-        javascript_data.append({
+        data.append({
             "identifier": f"subclusters-svg-{region_anchor}-sc{i}",
             "cds_results": [
                 {
@@ -64,4 +64,4 @@ def generate_javascript_data(record: Record, region: Region,
             ],
         })
 
-    return javascript_data
+    return data
