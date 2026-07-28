@@ -115,7 +115,7 @@ class SubclusterPrediction:
 class SubclusterDetectionResults(DetectionResults):
     """Results class for the Subcluster detection module """
 
-    schema_version = "1"  # increment when the JSON format changes
+    schema_version = 1  # increment when the JSON format changes
 
     def __init__(
             self,
