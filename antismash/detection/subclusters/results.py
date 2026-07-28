@@ -239,10 +239,10 @@ class SubclusterDetectionResults(DetectionResults):
         return cls(
             record_id=data["record_id"],
             rule_results=rule_results,
-            rule_names=set(data.get("rule_names", [])),
+            rule_names=set(data["rule_names"]),
             strictness=data["strictness"],
-            as_subregions=data.get("as_subregions", False),
-            require_overlap=data.get("require_overlap", False),
+            as_subregions=data["as_subregions"],
+            require_overlap=data["require_overlap"],
             record=record,
         )
 
