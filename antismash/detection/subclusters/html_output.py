@@ -19,70 +19,10 @@ def will_handle(products: list[str], categories: set[str]) -> bool:
     return True
 
 
-def _get_fake_predictions() -> list[SubclusterPrediction]:
-    """Hard-coded enriched predictions for template development.
-
-    Remove this function and its call-site in ``generate_html`` once real
-    detection data flows through ``SubclusterDetectionResults``.
-    """
-    def _fake_cds_results(rule_name: str,
-                          cds_domains: dict[str, list[tuple[str, float, float]]]) -> list:
-        results = []
-        for cds_name, domains in cds_domains.items():
-            results.append(SimpleNamespace(
-                cds=SimpleNamespace(get_name=lambda n=cds_name: n),
-                domains=[
-                    SimpleNamespace(name=name, evalue=evalue, bitscore=bitscore)
-                    for name, evalue, bitscore in domains
-                ],
-                definition_domains={rule_name: {name for name, _, _ in domains}},
-            ))
-        return results
-
-    prediction_a = SubclusterPrediction(
-        core_location=FeatureLocation(17346, 21101),
-        cds_results=_fake_cds_results("SCG0041", {
-            "AJAP_31990": [("ECH_1", 1.2e-18, 65.3)],
-            "AJAP_31995": [("ECH_1", 3.4e-21, 72.1)],
-            "AJAP_32000": [("ECH_1", 8.7e-20, 68.9)],
-            "AJAP_32005": [
-                ("Chal_sti_synt_N", 2.1e-45, 152.4),
-                ("Chal_sti_synt_C", 5.8e-34, 118.1),
-            ],
-        }),
-        rule=SimpleNamespace(
-            name="SCG0041",
-            conditions="ECH_1 and cds(Chal_sti_synt_C and Chal_sti_synt_N)",
-            description="3,5-Dihydroxyphenylglycine (Dhpg)",
-        ),
-    )
-
-    prediction_b = SubclusterPrediction(
-        core_location=FeatureLocation(27326, 80190),
-        cds_results=_fake_cds_results("SCG0042", {
-            "AJAP_32035": [("FMN_dh", 4.1e-29, 98.7)],
-            "AJAP_32040": [("Glyoxalase_4", 7.3e-15, 54.2)],
-            "AJAP_32060": [("Aminotran_1_2", 9.6e-38, 128.5)],
-            "AJAP_32155": [
-                ("PDH_N", 1.4e-22, 78.3),
-                ("PDH_C", 6.2e-17, 60.1),
-            ],
-        }),
-        rule=SimpleNamespace(
-            name="SCG0042",
-            conditions="cds(PDH_N and PDH_C) and Aminotran_1_2 and Glyoxalase_4 and FMN_dh",
-            description="4-Hydroxyphenylglycine (Hpg)",
-        ),
-    )
-
-    return [prediction_a, prediction_b]
-
-
 def generate_html(region_layer: RegionLayer, results: Optional[SubclusterDetectionResults],
                   record_layer: RecordLayer, options: ConfigType) -> HTMLSections:
     """Build the detail-panel HTML for subcluster predictions in this region."""
     predictions = results.get_predictions_for_region(region_layer.region_feature)
-    #predictions = _get_fake_predictions()
 
     enum_predictions = list(enumerate(predictions, start=1))
 
@@ -101,7 +41,6 @@ def generate_javascript_data(record: Record, region: Region,
     region_anchor = f"r{record.record_index}c{region.get_region_number()}"
 
     predictions = results.get_predictions_for_region(region)
-    #predictions = _get_fake_predictions()
 
     javascript_data = []
     for i, prediction in enumerate(predictions, start=1):
