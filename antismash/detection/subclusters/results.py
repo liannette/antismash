@@ -192,13 +192,13 @@ class SubclusterDetectionResults(DetectionResults):
         # keep only subclusters that overlap with a cluster from another detection
         # module or a subregion; the rest are dropped so they neither create new 
         # regions nor merge with one another
-        existing = [feature.location for feature in self._foreign_clusters()]
+        existing = [feature.location for feature in self._get_foreign_clusters()]
         return [
             subregion for subregion in subregions
             if any(locations_overlap(subregion.location, location) for location in existing)
         ]
 
-    def _foreign_clusters(self) -> list[Protocluster | SubRegion]:
+    def _get_foreign_clusters(self) -> list[Protocluster | SubRegion]:
         """Protoclusters and subregions on the record from other detection modules.
 
         Used when overlap is required, to decide which subclusters may extend

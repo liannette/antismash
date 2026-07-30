@@ -39,8 +39,6 @@ def get_compound(rule_name: str) -> CompoundInfo:
         ValueError: if the rule has no entry in the compound details file
     """
     _ensure_compounds_loaded()
-    if rule_name not in _COMPOUND_CACHE:
-        raise ValueError(f"No compound details for subcluster rule {rule_name!r}")
     return _COMPOUND_CACHE[rule_name]
 
 
