@@ -1,27 +1,25 @@
 """HMM signatures for the subcluster detection module."""
 
-from typing import Optional
-
 from antismash.common import path
 from antismash.common.signature import HmmSignature
-
-
-class SubclusterHmmSignature(HmmSignature):
-    """An HMM signature extended with an optional Pfam accession."""
-
-    def __init__(self, name: str, description: str, cutoff: int,
-                 hmm_path: str, seed_count: int = 0, *,
-                 accession: Optional[str] = None) -> None:
-        super().__init__(name, description, cutoff, hmm_path, seed_count)
-        self.accession = accession
 
 
 # the description of every signature used by the module
 DETAILS_FILE = path.get_full_path(__file__, "data", "hmmdetails.txt")
 # the combined profile database built from those signatures by prepare_data()
-AGGREGATE_HMM_FILE = path.get_full_path(__file__, "data", "subclusters.hmm")
+AGGREGATE_HMM_FILE = path.get_full_path(__file__, "data", "subcluster_seeds.hmm")
 
-_SIGNATURE_CACHE: dict[str, SubclusterHmmSignature] = {}
+_SIGNATURE_CACHE: dict[str, "SubclusterHmmSignature"] = {}
+
+
+class SubclusterHmmSignature(HmmSignature):
+    """An HMM signature extended an accession."""
+
+    def __init__(self, name: str, description: str, cutoff: int,
+                 hmm_path: str, seed_count: int = 0, *,
+                 accession: str) -> None:
+        super().__init__(name, description, cutoff, hmm_path, seed_count, 
+                         accession)
 
 
 def _ensure_signatures_loaded() -> None:
