@@ -16,7 +16,7 @@ from antismash.common.secmet.locations import (
 
 from .compounds import CompoundInfo, get_compound
 from .ruleset import get_ruleset
-from .signatures import get_signature
+from .signatures import get_signature_by_name
 
 
 @dataclass(frozen=True)
@@ -81,7 +81,7 @@ class SubclusterPrediction:
             for domain_name in sorted(fired):
                 matching = [d for d in cds_result.domains if d.name == domain_name]
                 best = max(matching, key=lambda d: d.bitscore) if matching else None
-                signature = get_signature(domain_name)
+                signature = get_signature_by_name(domain_name)
                 hits.append(CDSDomainHit(
                     domain_name=signature.name,
                     domain_description=signature.description,
