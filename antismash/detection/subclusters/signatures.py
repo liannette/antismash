@@ -35,11 +35,9 @@ def _ensure_signatures_loaded() -> None:
 def get_signatures() -> dict[str, SubclusterHmmSignature]:
     """Return all subcluster HMM signatures, keyed by name, loading from disk
     on first call.
-
-    The returned dict is a copy; modifying it does not affect the cache.
     """
     _ensure_signatures_loaded()
-    return dict(_SIGNATURE_CACHE)
+    return _SIGNATURE_CACHE
 
 
 def get_signature(name: str) -> SubclusterHmmSignature:
