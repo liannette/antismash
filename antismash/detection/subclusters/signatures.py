@@ -40,23 +40,6 @@ def get_signatures() -> dict[str, SubclusterHmmSignature]:
     return _SIGNATURE_CACHE
 
 
-def get_signature_by_name(domain_name: str) -> SubclusterHmmSignature:
-    """Return a single subcluster HMM signature by name, loading from disk on
-    first call.
-
-    Arguments:
-        name: the name of the signature
-
-    Returns:
-        the matching signature
-
-    Raises:
-        ValueError: if no signature with that name exists
-    """
-    _ensure_signatures_loaded()
-    return _SIGNATURE_CACHE[domain_name]
-
-
 def _read_signatures(detail_file: str) -> list[SubclusterHmmSignature]:
     """Parse a 5-column hmmdetails TSV into signature objects.
 
