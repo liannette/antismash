@@ -7,7 +7,7 @@ from typing import Any, Optional, Self, Sequence
 from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
 from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults, RuleDetectionResults
 from antismash.common.module_results import DetectionResults
-from antismash.common.secmet import Protocluster, Record, Region, SubRegion
+from antismash.common.secmet import Record, Region, SubRegion
 from antismash.common.secmet.features import CDSCollection
 from antismash.common.secmet.locations import (
     CompoundLocation,
