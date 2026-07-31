@@ -94,15 +94,17 @@ class SubclusterPrediction:
             fired = cds_result.definition_domains.get(self.rule_name, set())
             for domain_name in sorted(fired):
                 matching = [d for d in cds_result.domains if d.name == domain_name]
-                best = max(matching, key=lambda d: d.bitscore) if matching else None
+                if not matching:
+                    continue
+                best = max(matching, key=lambda d: d.bitscore)
                 signature = get_signatures()[domain_name]
                 hits.append(CDSDomainHit(
                     domain_name=signature.name,
                     domain_description=signature.description,
                     domain_accession=signature.accession,
                     cds_name=cds_name,
-                    evalue=best.evalue if best else None,
-                    bitscore=best.bitscore if best else None,
+                    evalue=best.evalue,
+                    bitscore=best.bitscore,
                 ))
         return hits
 
