@@ -165,7 +165,7 @@ class TestSubclusters(unittest.TestCase):
         assert aminotransferase.domain_description == "Aminotransferase class I and II"
 
         assert hpg.rule.name == "SCG0042"
-        assert hpg.core_location == FeatureLocation(27846, 80710, 1)
+        assert hpg.location == FeatureLocation(27846, 80710, 1)
         assert len(hpg.cds_results) == 4
         assert {result.cds.get_name(): sorted(result.definition_domains["SCG0042"])
                 for result in hpg.cds_results} == {
