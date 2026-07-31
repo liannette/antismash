@@ -1,24 +1,23 @@
 """Manages HTML construction for the subcluster detection module."""
 
-from typing import Optional
+from typing import Any
 
 from antismash.common import path
 from antismash.common.html_renderer import FileTemplate, HTMLSections, Markup
 from antismash.common.layers import RecordLayer, RegionLayer
-from antismash.common.json import JSONBase
 from antismash.common.secmet import Record, Region
 from antismash.config import ConfigType
 
 from .results import SubclusterDetectionResults
 
 
-def will_handle(products: list[str], categories: set[str]) -> bool:
+def will_handle(_products: list[str], _categories: set[str]) -> bool:
     """ Relevant to every region, so return True for every product """
     return True
 
 
-def generate_html(region_layer: RegionLayer, results: Optional[SubclusterDetectionResults],
-                  record_layer: RecordLayer, options: ConfigType) -> HTMLSections:
+def generate_html(region_layer: RegionLayer, results: SubclusterDetectionResults,
+                  _record_layer: RecordLayer, _options: ConfigType) -> HTMLSections:
     """Build the detail-panel HTML for subcluster predictions in this region."""
     predictions = results.get_predictions_for_region(region_layer.region_feature)
 
@@ -33,31 +32,32 @@ def generate_html(region_layer: RegionLayer, results: Optional[SubclusterDetecti
 
 
 def generate_javascript_data(record: Record, region: Region,
-                             results: SubclusterDetectionResults) -> JSONBase:
+                             results: SubclusterDetectionResults) -> list[Any]:
     region_anchor = f"r{record.record_index}c{region.get_region_number()}"
 
     predictions = results.get_predictions_for_region(region)
 
     data = []
     for i, prediction in enumerate(predictions, start=1):
+        cds_results = []
+        for cds_name, hits in prediction.domain_hits_by_cds.items():
+            domains = []
+            for hit in hits:
+                domains.append({
+                    "name": hit.domain_name,
+                    "description": hit.domain_description,
+                    "accession": hit.domain_accession,
+                    "evalue": hit.evalue,
+                    "bitscore": hit.bitscore,
+                })
+            cds_results.append({
+                "cds": cds_name,
+                "domains": domains,
+            })
+
         data.append({
             "identifier": f"subclusters-svg-{region_anchor}-sc{i}",
-            "cds_results": [
-                {
-                    "cds": cds_name,
-                    "domains": [
-                        {
-                            "name": hit.domain_name,
-                            "description": hit.domain_description,
-                            "accession": hit.domain_accession,
-                            "evalue": hit.evalue,
-                            "bitscore": hit.bitscore,
-                        }
-                        for hit in hits
-                    ],
-                }
-                for cds_name, hits in prediction.domain_hits_by_cds.items()
-            ],
+            "cds_results": cds_results,
         })
 
     return data
