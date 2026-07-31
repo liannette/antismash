@@ -1,6 +1,7 @@
 import logging
 from collections import defaultdict
 from dataclasses import dataclass
+from enum import StrEnum, auto
 from functools import cached_property
 from typing import Any, Optional, Self, Sequence
 
@@ -28,7 +29,12 @@ from .signatures import get_signatures
 #  - "extend": overlapping subclusters are kept in full, so they can extend an
 #              existing region, but subclusters without any overlap are discarded
 #  - "any": every subcluster is kept in full, so they can also form new regions
-SUBREGION_MODES = ("clip", "extend", "any")
+
+
+class SubRegionMode(StrEnum):
+    CLIP = auto()
+    EXTEND = auto()
+    ANY = auto()
 
 
 @dataclass(frozen=True)
@@ -141,9 +147,10 @@ class SubclusterDetectionResults(DetectionResults):
             rule_names: set[str],
             strictness: str,
             record: Record,
-            subregion_mode: str = "clip",
+            subregion_mode: SubRegionMode = SubRegionMode.CLIP,
     ) -> None:
-        if subregion_mode not in SUBREGION_MODES:
+
+        if subregion_mode not in SubRegionMode:
             raise ValueError(f"Unknown subcluster subregion mode: {subregion_mode!r}")
 
         super().__init__(record_id)
@@ -188,7 +195,7 @@ class SubclusterDetectionResults(DetectionResults):
         ]
 
         # "any": use each subcluster prediction for subregion formation
-        if self.subregion_mode == "any":
+        if self.subregion_mode == SubRegionMode.ANY:
             return subregions
 
         # get merged locations of other clusters for "extend" and "clip"
@@ -199,8 +206,10 @@ class SubclusterDetectionResults(DetectionResults):
 
         # "extend": only subcluster predictions that overlap with
         # an area from another module are used for for subregion formation
-        if self.subregion_mode == "extend":
+        if self.subregion_mode == SubRegionMode.EXTEND:
             return subregions
+
+        assert self.subregion_mode == SubRegionMode.CLIP
 
         # "clip": only the sections shared with an area from another module are
         # kept, so the truncated results are locations rather than protoclusters

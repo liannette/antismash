@@ -14,7 +14,7 @@ from antismash.config import ConfigType
 from antismash.config.args import ModuleArgs
 from antismash.detection import DetectionStage
 
-from .results import SUBREGION_MODES, SubclusterDetectionResults
+from .results import SubclusterDetectionResults, SubRegionMode
 from .ruleset import get_ruleset, _STRICTNESS_LEVELS
 from .signatures import AGGREGATE_HMM_FILE, DETAILS_FILE, get_signatures
 from .html_output import generate_html, will_handle, generate_javascript_data
@@ -49,8 +49,8 @@ def get_arguments() -> ModuleArgs:
     args.add_option('subregions',
                     dest='subregion_mode',
                     type=str,
-                    choices=list(SUBREGION_MODES),
-                    default="clip",
+                    choices=list(SubRegionMode),
+                    default=str(SubRegionMode.CLIP).lower(),
                     help=("How far detected subclusters may alter region boundaries "
                           "when added as subregions: 'clip' keeps only the parts "
                           "overlapping a cluster found by another detection module, "
@@ -66,10 +66,13 @@ def check_options(options: ConfigType) -> list[str]:
     """ Checks the options to see if there are any issues before
         running any analyses
     """
+    errors = []
     if options.subclusters_strictness not in _STRICTNESS_LEVELS:
-        return [f"Unknown subcluster strictness level: {options.subclusters_strictness}"]
+        errors.append(f"Unknown subcluster strictness level: {options.subclusters_strictness}")
 
-    if options.subclusters_subregion_mode not in SUBREGION_MODES:
+    try:
+        SubRegionMode[options.subclusters_subregion_mode.upper()]
+    except ValueError:
         return [f"Unknown subcluster subregion mode: {options.subclusters_subregion_mode}"]
 
     return []
@@ -185,7 +188,6 @@ def run_on_record(record: Record, previous_results: Optional[SubclusterDetection
         rule_results=rule_results,
         rule_names=ruleset.get_rule_names(),
         strictness=current_strictness,
-        subregion_mode=options.subclusters_subregion_mode,
+        subregion_mode=SubRegionMode[options.subclusters_subregion_mode.upper()],
         record=record,
     )
-
