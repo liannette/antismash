@@ -18,8 +18,8 @@ class SubclusterHmmSignature(HmmSignature):
     def __init__(self, name: str, description: str, cutoff: int,
                  hmm_path: str, seed_count: int = 0, *,
                  accession: str) -> None:
-        super().__init__(name, description, cutoff, hmm_path, seed_count, 
-                         accession)
+        super().__init__(name, description, cutoff, hmm_path, seed_count)
+        self.accession = accession
 
 
 def _ensure_signatures_loaded() -> None:

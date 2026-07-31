@@ -36,8 +36,8 @@ class SubclusterPrediction:
     Attributes:
         rule: The detection rule whose conditions were met
         core_location: location of the protocluster core that produced this prediction
-        cds_results: the per-CDS detection results for every CDS that contributed
-            to this prediction, as returned by the detection pipeline
+        cds_results: the per-CDS detection results for every CDS contributing a
+            domain that defines this prediction's rule
     """
 
     def __init__(
@@ -148,7 +148,11 @@ class SubclusterDetectionResults(DetectionResults):
             SubclusterPrediction(
                 rule=ruleset.get_rule_by_name(protocluster.product),
                 core_location=protocluster.core_location,
-                cds_results=cds_results,
+                # the shared pipeline reports every CDS within the cutoff of the rule,
+                # including those defining a different subcluster, so restrict these
+                # results to the CDS features that define this subcluster
+                cds_results=[result for result in cds_results
+                             if result.definition_domains.get(protocluster.product)],
             )
             for protocluster, cds_results in rule_results.cds_by_cluster.items()
         ]
