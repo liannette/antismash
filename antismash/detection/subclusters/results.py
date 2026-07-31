@@ -15,7 +15,6 @@ from antismash.common.secmet.locations import (
     FeatureLocation,
     Location,
     location_contains_other,
-    locations_overlap,
 )
 
 from .compounds import CompoundInfo, get_compound
@@ -286,38 +285,3 @@ class SubclusterDetectionResults(DetectionResults):
         if record.id != self.record_id:
             raise ValueError("Record to store in and record analysed don't match")
         self.rule_results.annotate_cds_features()
-
-
-def _intersect_locations(outer: Location, inner: Location,
-                         wrap_point: Optional[int]) -> Optional[Location]:
-    """Truncate a location to the section it shares with another.
-
-    Arguments:
-        outer: the location to truncate to
-        inner: the location to truncate
-        wrap_point: the record length for circular records, otherwise None
-
-    Returns:
-        the shared location, or None if the two don't overlap
-    """
-    parts = []
-    for outer_part in outer.parts:
-        for inner_part in inner.parts:
-            if not locations_overlap(outer_part, inner_part):
-                continue
-            parts.append(FeatureLocation(max(outer_part.start, inner_part.start),
-                                         min(outer_part.end, inner_part.end), 1))
-    if not parts:
-        return None
-    if len(parts) == 1:
-        return parts[0]
-    # with both locations crossing the origin, the shared section does too, and
-    # by convention is ordered with the piece before the origin first
-    if wrap_point is not None:
-        before = [part for part in parts if part.end == wrap_point]
-        after = [part for part in parts if part.start == 0]
-        if len(before) == 1 and len(after) == 1:
-            return CompoundLocation([before[0], after[0]])
-    # otherwise the two only share separate sections, which a single subregion
-    # cannot cover, so keep the largest of them
-    return max(parts, key=len)
