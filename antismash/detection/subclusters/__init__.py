@@ -14,7 +14,7 @@ from antismash.config import ConfigType
 from antismash.config.args import ModuleArgs
 from antismash.detection import DetectionStage
 
-from .results import SUBREGION_MODES, SubclusterDetectionResults
+from .results import SubclusterDetectionResults
 from .ruleset import get_ruleset, _STRICTNESS_LEVELS
 from .signatures import AGGREGATE_HMM_FILE, DETAILS_FILE, get_signatures
 from .html_output import generate_html, will_handle, generate_javascript_data
@@ -46,19 +46,23 @@ def get_arguments() -> ModuleArgs:
                           "subcluster detection. Levels are cumulative, so "
                           "looser levels also include all stricter rules "
                           "(default: %(default)s)."))
-    args.add_option('subregions',
-                    dest='subregion_mode',
-                    type=str,
-                    choices=list(SUBREGION_MODES),
-                    default="clip",
-                    help=("How far detected subclusters may alter region boundaries "
-                          "when added as subregions: 'clip' keeps only the parts "
-                          "overlapping a cluster found by another detection module, "
-                          "truncated to that cluster's boundaries, so regions never "
-                          "grow; 'extend' keeps overlapping subclusters in full, so "
-                          "they can extend an existing region; 'any' keeps every "
-                          "subcluster in full, so they can also form standalone "
-                          "regions (default: %(default)s)."))
+    args.add_option('as-subregions',
+                    dest='as_subregions',
+                    action='store_true',
+                    default=False,
+                    help=("Treat detected subclusters as subregions so they "
+                          "seed and extend regions during region formation, "
+                          "(default: %(default)s)."))
+    args.add_option('require-overlap',
+                    dest='require_overlap',
+                    action='store_true',
+                    default=False,
+                    help=("Only relevant with --subclusters-as-subregions: keep "
+                          "a subcluster subregion only if it overlaps a cluster "
+                          "found by another detection module, so subclusters can "
+                          "extend existing regions but never create new regions "
+                          "on their own or merge with each other "
+                          "(default: %(default)s)."))
     return args
 
 
@@ -69,8 +73,9 @@ def check_options(options: ConfigType) -> list[str]:
     if options.subclusters_strictness not in _STRICTNESS_LEVELS:
         return [f"Unknown subcluster strictness level: {options.subclusters_strictness}"]
 
-    if options.subclusters_subregion_mode not in SUBREGION_MODES:
-        return [f"Unknown subcluster subregion mode: {options.subclusters_subregion_mode}"]
+    if options.subclusters_require_overlap and not options.subclusters_as_subregions:
+        return ["--subclusters-require-overlap requires "
+                "--subclusters-as-subregions"]
 
     return []
 
@@ -186,7 +191,8 @@ def run_on_record(record: Record, previous_results: Optional[SubclusterDetection
         rule_results=rule_results,
         rule_names=ruleset.get_rule_names(),
         strictness=current_strictness,
-        subregion_mode=options.subclusters_subregion_mode,
+        as_subregions=options.subclusters_as_subregions,
+        require_overlap=options.subclusters_require_overlap,
         record=record,
     )
 
