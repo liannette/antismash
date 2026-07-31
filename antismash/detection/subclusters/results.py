@@ -13,7 +13,6 @@ from antismash.common.secmet.locations import (
     CompoundLocation,
     FeatureLocation,
     Location,
-    connect_locations,
     location_contains_other,
     locations_overlap,
 )
@@ -182,10 +181,10 @@ class SubclusterDetectionResults(DetectionResults):
         if not self.predictions:
             return []
 
-        current = self.rule_results.protoclusters
+        current: Sequence[CDSCollection] = self.rule_results.protoclusters
         subregions = [
             SubRegion(location, tool=self.rule_results.tool, label="subclusters")
-            for location, _ in self._group_areas(current)
+            for location, _ in self._record.get_potential_regions(current)
         ]
 
         # "any": use each subcluster prediction for subregion formation
@@ -194,7 +193,7 @@ class SubclusterDetectionResults(DetectionResults):
 
         # get merged locations of other clusters for "extend" and "clip"
         external = [location for location, _ in
-                    self._group_areas(self._get_foreign_areas())]
+                    self._record.get_potential_regions(self._get_foreign_areas())]
 
         subregions = list(filter(lambda x: any(x.overlaps_with(extern) for extern in external), subregions))
 
@@ -240,46 +239,6 @@ class SubclusterDetectionResults(DetectionResults):
         areas: list[CDSCollection] = list(self._record.get_protoclusters())
         areas.extend(self._record.get_subregions())
         return areas
-
-    def _group_areas(self, areas: Sequence[CDSCollection]) -> list[tuple[Location, list[CDSCollection]]]:
-
-        if not areas:
-            return []
-        areas = sorted(areas)
-
-        wrap_point = len(self._record) if self._record.is_circular() else None
-
-        # find all overlapping sets
-        sections: list[tuple[Location, list[CDSCollection]]] = []
-
-        location: Location = areas[0].location
-        included_areas = [areas[0]]
-
-        for area in areas[1:]:
-            if not area.overlaps_with(location):
-                sections.append((location, included_areas))
-                location = area.location
-                included_areas = [area]
-            else:
-                location = connect_locations([area.location, location], wrap_point=wrap_point)
-                included_areas.append(area)
-
-        # finalise the last, unterminated section
-        sections.append((location, included_areas))
-
-        # then handle any cases over cross-origin overlap of sections by merging first and last
-        if len(sections) > 1:
-            first_location, first_areas = sections[0]
-            last_location, last_areas = sections[-1]
-            if locations_overlap(first_location, last_location):
-                sections.pop()
-                location = connect_locations([first_location, last_location], wrap_point=wrap_point)
-                for area in last_areas:
-                    if area not in first_areas:
-                        first_areas.append(area)
-                sections[0] = (location, first_areas)
-
-        return sections
 
     def to_json(self) -> dict[str, Any]:
         return {
