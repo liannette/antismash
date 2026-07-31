@@ -115,7 +115,7 @@ class TestSubclusters(unittest.TestCase):
         destroy_config()
 
     def get_args(self):
-        return ["--minimal", "--subclusters", "--subclusters-as-subregions", "--enable-html"]
+        return ["--minimal", "--subclusters", "--subclusters", "any", "--enable-html"]
 
     def test_full_pathway(self):
         features = []
@@ -145,7 +145,7 @@ class TestSubclusters(unittest.TestCase):
         dhpg, hpg = results.predictions
 
         assert dhpg.rule.name == "SCG0041"
-        assert dhpg.core_location == FeatureLocation(17866, 35294, 1)
+        assert dhpg.location == FeatureLocation(17866, 35294, 1)
         # AJAP_32035 and AJAP_32040 fall within the cutoff of this rule,
         # but define the other subcluster, so they must not be included here
         assert len(dhpg.cds_results) == 5

@@ -9,6 +9,6 @@ RULE SCG_0001
     CUTOFF 10
     NEIGHBOURHOOD 0
     CONDITIONS 4HBT_2
-               and cds(ketoacyl-synt and Ketoacyl-synt_C and KR and Acyl_transf_1 and PS-DH) 
+               and cds(ketoacyl-synt and Ketoacyl-synt_C and KR and Acyl_transf_1 and PS-DH and PKS_DH_N and adh_short) 
                and cds(FG-GAP_3 and UnbV_ASPIC) 
                and DUF1702
