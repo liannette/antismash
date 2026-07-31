@@ -8,8 +8,12 @@ from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
 from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults, RuleDetectionResults
 from antismash.common.module_results import DetectionResults
 from antismash.common.secmet import Protocluster, Record, Region, SubRegion
+from antismash.common.secmet.features import CDSCollection
 from antismash.common.secmet.locations import (
+    CompoundLocation,
     FeatureLocation,
+    Location,
+    connect_locations,
     location_contains_other,
     locations_overlap,
 )
@@ -17,6 +21,15 @@ from antismash.common.secmet.locations import (
 from .compounds import CompoundInfo, get_compound
 from .ruleset import get_ruleset
 from .signatures import get_signatures
+
+# how far a detected subcluster is allowed to alter region boundaries when
+# subclusters are added to the record as subregions:
+#  - "clip": only the parts overlapping an area found by another detection module
+#            are kept, truncated to that area, so regions can never grow
+#  - "extend": overlapping subclusters are kept in full, so they can extend an
+#              existing region, but subclusters without any overlap are discarded
+#  - "any": every subcluster is kept in full, so they can also form new regions
+SUBREGION_MODES = ("clip", "extend", "any")
 
 
 @dataclass(frozen=True)
@@ -35,7 +48,8 @@ class SubclusterPrediction:
 
     Attributes:
         rule: The detection rule whose conditions were met
-        core_location: location of the protocluster core that produced this prediction
+        location: location of the protocluster that produced this prediction,
+            i.e. the matching core along with any neighbourhood the rule defines
         cds_results: the per-CDS detection results for every CDS that contributed
             to this prediction, as returned by the detection pipeline
     """
@@ -44,11 +58,11 @@ class SubclusterPrediction:
             self,
             *,
             rule: DetectionRule,
-            core_location: FeatureLocation,
+            location: FeatureLocation,
             cds_results: list[CDSResults],
     ) -> None:
         self.rule = rule
-        self.core_location = core_location
+        self.location = location
         self.cds_results = cds_results
 
     @property
@@ -109,7 +123,7 @@ class SubclusterPrediction:
     def __repr__(self) -> str:
         return (
             f"SubclusterPrediction(rule_name={self.rule_name!r}, "
-            f"core={self.core_location.start}-{self.core_location.end}, "
+            f"location={self.location.start}-{self.location.end}, "
             f"cds_count={len(self.cds_results)})"
         )
 
@@ -125,29 +139,24 @@ class SubclusterDetectionResults(DetectionResults):
             rule_results: RuleDetectionResults,
             rule_names: set[str],
             strictness: str,
-            as_subregions: bool = False,
-            require_overlap: bool = False,
-            record: Optional[Record] = None,
+            record: Record,
+            subregion_mode: str = "clip",
     ) -> None:
+        if subregion_mode not in SUBREGION_MODES:
+            raise ValueError(f"Unknown subcluster subregion mode: {subregion_mode!r}")
+
         super().__init__(record_id)
         self.rule_results = rule_results
         self.rule_names = rule_names
         self.strictness = strictness
-        # when True, each detected subcluster protocluster is exposed as a
-        # sub-region feature so that it is part of the region formation step
-        self.as_subregions = as_subregions
-        # when True, only subclusters that overlap a cluster found by another
-        # detection module are emitted, so subclusters can extend existing
-        # regions but never form standalone regions (or merge with each other)
-        self.require_overlap = require_overlap
-        # the record being analysed, needed to look up clusters from other
-        # detection modules when require_overlap is enabled
+        self.subregion_mode = subregion_mode
         self._record = record
+
         ruleset = get_ruleset(self.strictness)
         self.predictions = [
             SubclusterPrediction(
                 rule=ruleset.get_rule_by_name(protocluster.product),
-                core_location=protocluster.core_location,
+                location=protocluster.location,
                 cds_results=cds_results,
             )
             for protocluster, cds_results in rule_results.cds_by_cluster.items()
@@ -157,69 +166,136 @@ class SubclusterDetectionResults(DetectionResults):
         """Return all predictions fully contained within the given region."""
         return [
             prediction for prediction in self.predictions
-            if location_contains_other(region.location, prediction.core_location)
-        ]
-
-    def get_predictions_outside_regions(self, record: Record) -> list[SubclusterPrediction]:
-        """Return predictions not fully contained by any region in the record."""
-        return [
-            prediction for prediction in self.predictions
-            if not any(
-                location_contains_other(region.location, prediction.core_location)
-                for region in record.get_regions()
-            )
+            if location_contains_other(region.location, prediction.location)
         ]
 
     def get_predicted_subregions(self) -> list[SubRegion]:
-        """Return each detected subcluster as a sub-region feature.
+        """Return sub-region features for the detected subclusters.
 
-        When enabled by the corresponding option, these are added to the record
-        during the region-formation step of the main pipeline, letting subclusters
-        form new regions or extend existing ones. When disabled, an empty list is
-        returned and subclusters remain display-only annotations within existing
-        regions.
+        These are added to the record during the region-formation step of the
+        main pipeline, letting subclusters extend existing regions or form new
+        ones. How far they may alter region boundaries depends on the configured
+        subregion mode.
         """
-        if not self.as_subregions:
+        if not self.predictions:
             return []
-        subregions = [
-            SubRegion(protocluster.location, tool=self.rule_results.tool,
-                      label=protocluster.product)
-            for protocluster in self.rule_results.protoclusters
-        ]
-        if not self.require_overlap:
+
+        # "any": use each subcluster prediction for subregion formation
+        if self.subregion_mode == "any":
+            all_subclusters = self.rule_results.protoclusters
+            groups = self._group_areas(all_subclusters)
+            subregions = [
+                SubRegion(location, tool=self.rule_results.tool,
+                            label="subclusters")
+                for location, _ in groups
+            ]
             return subregions
 
-        # keep only subclusters that overlap with a cluster from another detection
-        # module or a subregion; the rest are dropped so they neither create new 
-        # regions nor merge with one another
-        existing = [feature.location for feature in self._get_foreign_clusters()]
-        return [
-            subregion for subregion in subregions
-            if any(locations_overlap(subregion.location, location) for location in existing)
+        # get merged locations of other clusters for "extend" and "clip"
+        external = [location for location, _ in
+                    self._group_areas(self._get_foreign_areas())]
+
+        # "extend": only subcluster predictions that overlap with
+        # an area from another module are used for for subregion formation
+        if self.subregion_mode == "extend":
+            overlapping_protoclusters = [
+                protocluster for protocluster in self.rule_results.protoclusters
+                if any(locations_overlap(protocluster.location, area) for area in external)
+            ]
+            groups = self._group_areas(overlapping_protoclusters)
+            subregions = [
+                SubRegion(location, tool=self.rule_results.tool,
+                            label="subclusters")
+                for location, _ in groups
+            ]
+            return subregions
+
+        # "clip": only the sections shared with an area from another module are
+        # kept, so the truncated results are locations rather than protoclusters
+        wrap_point = len(self._record) if self._record.is_circular() else None
+        clipped: list[Location] = []
+        for protocluster in self.rule_results.protoclusters:
+            subcluster = protocluster.location
+            for area in external:
+                if not locations_overlap(subcluster, area):
+                    continue
+                # a fully contained subcluster needs no truncation
+                if location_contains_other(area, subcluster):
+                    clipped.append(subcluster)
+                    break
+                shared = _intersect_locations(area, subcluster, wrap_point)
+                if shared is not None:
+                    clipped.append(shared)
+
+        # clipped sections of different subclusters can still overlap each other,
+        # so they are grouped as in the other modes, which requires features
+        clipped_areas = [
+            SubRegion(location, tool=self.rule_results.tool,
+                        label="subclusters")
+            for location in clipped
         ]
+        groups = self._group_areas(clipped_areas)
+        subregions = [
+            SubRegion(location, tool=self.rule_results.tool,
+                        label="subclusters")
+            for location, _ in groups
+        ]
+        return subregions
 
-    def _get_foreign_clusters(self) -> list[Protocluster | SubRegion]:
+    def _get_foreign_areas(self) -> list[CDSCollection]:
         """Protoclusters and subregions on the record from other detection modules.
-
-        Used when overlap is required, to decide which subclusters may extend
-        an existing region. Region features do not exist yet at the point this
-        runs, so overlap is tested against the protoclusters and subregions that
-        other detection modules have already added to the record.
         """
-        if self._record is None:
-            return []
-        features: list[Protocluster | SubRegion] = []
+        features: list[CDSCollection] = []
         features.extend(self._record.get_protoclusters())
         features.extend(self._record.get_subregions())
-        return [feature for feature in features if feature.tool != self.rule_results.tool]
+        return features
+
+    def _group_areas(self, areas: list[CDSCollection]) ->  list[tuple[Location, list[CDSCollection]]]:
+
+        if not areas:
+            return []
+        areas.sort()
+
+        wrap_point = len(self._record) if self._record.is_circular() else None
+
+        # find all overlapping sets
+        sections: list[tuple[Location, list[CDSCollection]]] = []
+
+        location: Location = areas[0].location
+        included_areas = [areas[0]]
+
+        for area in areas[1:]:
+            if not area.overlaps_with(location):
+                sections.append((location, included_areas))
+                location = area.location
+                included_areas = [area]
+            else:
+                location = connect_locations([area.location, location], wrap_point=wrap_point)
+                included_areas.append(area)
+
+        # finalise the last, unterminated section
+        sections.append((location, included_areas))
+
+        # then handle any cases over cross-origin overlap of sections by merging first and last
+        if len(sections) > 1:
+            first_location, first_areas = sections[0]
+            last_location, last_areas = sections[-1]
+            if locations_overlap(first_location, last_location):
+                sections.pop()
+                location = connect_locations([first_location, last_location], wrap_point=wrap_point)
+                for area in last_areas:
+                    if area not in first_areas:
+                        first_areas.append(area)
+                sections[0] = (location, first_areas)
+
+        return sections
 
     def to_json(self) -> dict[str, Any]:
         return {
             "schema_version": self.schema_version,
             "record_id": self.record_id,
             "strictness": self.strictness,
-            "as_subregions": self.as_subregions,
-            "require_overlap": self.require_overlap,
+            "subregion_mode": self.subregion_mode,
             "rule_names": sorted(self.rule_names),
             "rule_results": self.rule_results.to_json(),
         }
@@ -243,8 +319,7 @@ class SubclusterDetectionResults(DetectionResults):
             rule_results=rule_results,
             rule_names=set(data["rule_names"]),
             strictness=data["strictness"],
-            as_subregions=data["as_subregions"],
-            require_overlap=data["require_overlap"],
+            subregion_mode=data["subregion_mode"],
             record=record,
         )
 
@@ -252,3 +327,38 @@ class SubclusterDetectionResults(DetectionResults):
         if record.id != self.record_id:
             raise ValueError("Record to store in and record analysed don't match")
         self.rule_results.annotate_cds_features()
+
+
+def _intersect_locations(outer: Location, inner: Location,
+                         wrap_point: Optional[int]) -> Optional[Location]:
+    """Truncate a location to the section it shares with another.
+
+    Arguments:
+        outer: the location to truncate to
+        inner: the location to truncate
+        wrap_point: the record length for circular records, otherwise None
+
+    Returns:
+        the shared location, or None if the two don't overlap
+    """
+    parts = []
+    for outer_part in outer.parts:
+        for inner_part in inner.parts:
+            if not locations_overlap(outer_part, inner_part):
+                continue
+            parts.append(FeatureLocation(max(outer_part.start, inner_part.start),
+                                         min(outer_part.end, inner_part.end), 1))
+    if not parts:
+        return None
+    if len(parts) == 1:
+        return parts[0]
+    # with both locations crossing the origin, the shared section does too, and
+    # by convention is ordered with the piece before the origin first
+    if wrap_point is not None:
+        before = [part for part in parts if part.end == wrap_point]
+        after = [part for part in parts if part.start == 0]
+        if len(before) == 1 and len(after) == 1:
+            return CompoundLocation([before[0], after[0]])
+    # otherwise the two only share separate sections, which a single subregion
+    # cannot cover, so keep the largest of them
+    return max(parts, key=len)
