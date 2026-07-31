@@ -193,7 +193,7 @@ class SubclusterDetectionResults(DetectionResults):
             return subregions
 
         # get merged locations of other clusters for "extend" and "clip"
-        external: list[Location] = [location for location, _ in
+        external = [location for location, _ in
                     self._group_areas(self._get_foreign_areas())]
 
         subregions = list(filter(lambda x: any(x.overlaps_with(extern) for extern in external), subregions))
