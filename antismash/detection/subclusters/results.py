@@ -164,7 +164,8 @@ class SubclusterDetectionResults(DetectionResults):
             SubclusterPrediction(
                 rule=ruleset.get_rule_by_name(protocluster.product),
                 location=protocluster.location,
-                cds_results=cds_results,
+                cds_results=[result for result in cds_results
+                             if result.definition_domains.get(protocluster.product)],
             )
             for protocluster, cds_results in rule_results.cds_by_cluster.items()
         ]
