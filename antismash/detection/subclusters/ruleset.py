@@ -1,9 +1,11 @@
 """Ruleset construction for the subcluster detection module."""
 
+from typing import cast
+
 from antismash.common import path
 from antismash.common.hmm_rule_parser.cluster_prediction import Ruleset, create_rules
 
-from .signatures import AGGREGATE_HMM_FILE, get_signatures
+from .signatures import AGGREGATE_HMM_FILE, HmmSignature, get_signatures
 
 # Strictness levels are cumulative: each level includes all levels above it,
 # ordered from most to least strict.
@@ -55,7 +57,7 @@ def _build_ruleset(strictness: str) -> Ruleset:
 
     return Ruleset(
         tuple(rules),
-        signatures,
+        cast(dict[str, HmmSignature], signatures),
         AGGREGATE_HMM_FILE,
         _CATEGORIES,
         "subclusters",
