@@ -14,9 +14,11 @@ from antismash.config import ConfigType
 from antismash.config.args import ModuleArgs
 from antismash.detection import DetectionStage
 
-from .results import SubclusterDetectionResults, SubRegionMode
+from .predictions import build_predictions
+from .results import SubclusterDetectionResults
 from .ruleset import get_ruleset, _STRICTNESS_LEVELS
 from .signatures import AGGREGATE_HMM_FILE, DETAILS_FILE, get_signatures
+from .subregions import SubRegionMode, build_subregions
 from .html_output import generate_html, will_handle, generate_javascript_data
 
 NAME = "subclusters"
@@ -175,7 +177,6 @@ def run_on_record(record: Record, previous_results: Optional[SubclusterDetection
     current_strictness = _get_strictness(options)
     ruleset = get_ruleset(current_strictness)
     rule_results = detect_protoclusters_and_signatures(record, ruleset)
-
     # The shared rule-based detection pipeline hardcodes the protocluster
     # "aStool" qualifier to "rule-based-clusters". These protoclusters were
     # produced by this module, so relabel them with this module's tool name
@@ -183,11 +184,18 @@ def run_on_record(record: Record, previous_results: Optional[SubclusterDetection
     for protocluster in rule_results.protoclusters:
         protocluster.tool = rule_results.tool
 
+    predictions = build_predictions(rule_results, current_strictness)
+
+    subregion_mode = SubRegionMode[options.subclusters_subregion_mode.upper()]
+    subregions = build_subregions(record, rule_results.protoclusters,
+                                  tool=rule_results.tool, mode=subregion_mode)
+
     return SubclusterDetectionResults(
         record_id=record.id,
         rule_results=rule_results,
         rule_names=ruleset.get_rule_names(),
         strictness=current_strictness,
-        subregion_mode=SubRegionMode[options.subclusters_subregion_mode.upper()],
-        record=record,
+        subregion_mode=subregion_mode,
+        predictions=predictions,
+        subregions=subregions,
     )
