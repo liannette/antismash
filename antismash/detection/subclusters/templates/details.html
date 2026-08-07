@@ -7,9 +7,9 @@
     {% set i = loop.index %}
     <div class="subcluster-prediction" id="{{ anchor }}-sc{{ i }}">
       <div class="header">
-        <span class="compound-name">{{ prediction.compound.name }}</span>
-        <span class="compound-class">{{ prediction.compound.classification | join(", ") }}</span>
         <span class="rule-name">{{ prediction.rule_name }}</span>
+        <span class="compound-name">{{ prediction.compound.name }}</span>
+        <span class="compound-class">{% for classification in prediction.compound.classification %}<span class="compound-class-item">{{ classification }}</span>{% endfor %}</span>
       </div>
       {{ collapser_start(target="subcluster_prediction-%s" % i, level="none") }}
         <div class="collapser-inner">

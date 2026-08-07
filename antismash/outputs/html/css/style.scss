@@ -1891,19 +1891,34 @@ ul.dropdown-options {
     .header {
         flex: 1;
         display: flex;
-        gap: 3em;
+        justify-content: flex-start;
+        gap: 1.5em;
         align-items: baseline;
         margin-bottom: 0.3em;
         margin-right: 1.5em;
 
         .rule-name {
             @extend .serif;
-            margin-left: auto;
-            font-weight: bold;
+            flex: 0 0 5em;
+            overflow-wrap: anywhere;
+        }
+
+        .compound-name {
+            flex: 0 1 auto;
+            min-width: 20em;
         }
 
         .compound-class {
-            font-style: italic;
+            flex: 0 1 auto;
+
+            .compound-class-item {
+                padding: 0 0.2em;
+                font-style: italic;
+
+                + .compound-class-item {
+                    margin-left: 0.3em;
+                }
+            }
         }
     }
 
