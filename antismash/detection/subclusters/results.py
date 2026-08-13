@@ -4,7 +4,6 @@ from typing import Any, Optional, Self
 from antismash.common.hmm_rule_parser.cluster_prediction import RuleDetectionResults
 from antismash.common.module_results import DetectionResults
 from antismash.common.secmet import Record, Region, SubRegion
-from antismash.common.secmet.locations import location_contains_other
 
 from .predictions import SubclusterPrediction, build_predictions
 from .subregions import SubRegionMode, build_subregions
