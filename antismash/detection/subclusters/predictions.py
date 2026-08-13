@@ -40,8 +40,6 @@ class SubclusterPrediction:
         rule: The detection rule whose conditions were met
         location: location of the protocluster that produced this prediction,
             i.e. the matching core along with any neighbourhood the rule defines
-        cds_results: the per-CDS detection results for every CDS that contributed
-            to this prediction, as returned by the detection pipeline
         compound: the compound associated with the detection rule
         domain_hits: a flat list of every domain hit, each paired with its CDS name
     """
@@ -51,13 +49,11 @@ class SubclusterPrediction:
             *,
             rule: DetectionRule,
             location: FeatureLocation,
-            cds_results: list[CDSResults],
             compound: CompoundInfo,
             domain_hits: list[CDSDomainHit],
     ) -> None:
         self.rule = rule
         self.location = location
-        self.cds_results = cds_results
         self.compound = compound
         self.domain_hits = domain_hits
 
@@ -91,7 +87,7 @@ class SubclusterPrediction:
         return (
             f"SubclusterPrediction(rule_name={self.rule_name!r}, "
             f"location={self.location.start}-{self.location.end}, "
-            f"cds_count={len(self.cds_results)})"
+            f"cds_count={len(self.domain_hits_by_cds)})"
         )
 
 
@@ -144,7 +140,6 @@ def build_predictions(rule_results: RuleDetectionResults, strictness: str,
         predictions.append(SubclusterPrediction(
             rule=rule,
             location=protocluster.location,
-            cds_results=contributing,
             # every rule must have a matching entry in the compound details file
             compound=get_compound(rule.name),
             domain_hits=_build_domain_hits(rule.name, contributing),

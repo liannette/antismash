@@ -129,50 +129,46 @@ class TestSubclusters(unittest.TestCase):
             results = run_and_regenerate_results_for_module(temp.name, subclusters, self.options)
 
         assert results
-        assert len(results.rule_results.protoclusters) == 2
 
+        predicted_subregions = results.get_predicted_subregions()
+        assert len(predicted_subregions) == 1
+        assert predicted_subregions[0].label == "subclusters"
+        assert predicted_subregions[0].location == FeatureLocation(17866, 80710, 1)
+        assert predicted_subregions[0].tool == "subclusters"
+
+        assert len(results.rule_results.protoclusters) == 2
         assert [(proto.product, proto.location) for proto in results.rule_results.protoclusters] == [
             ("SCG0041", FeatureLocation(17866, 35294, 1)),
             ("SCG0042", FeatureLocation(27846, 80710, 1)),
         ]
-
-        # assert len(results.get_predicted_subregions()) == 2
-        # assert [(sub.label, sub.location, sub.tool) for sub in results.get_predicted_subregions()] == [
-        #     ("SCG0041", FeatureLocation(17866, 35294, 1), "subclusters"),
-        #     ("SCG0042", FeatureLocation(27846, 80710, 1), "subclusters"),
-        # ]
 
         assert len(results.predictions) == 2
         dhpg, hpg = results.predictions
 
         assert dhpg.rule.name == "SCG0041"
         assert dhpg.location == FeatureLocation(17866, 35294, 1)
-        # AJAP_32035 and AJAP_32040 fall within the cutoff of this rule,
-        # but define the other subcluster, so they must not be included here
-        assert len(dhpg.cds_results) == 5
-        expected = {
-            "AJAP_31990": ["ECH_1"],
-            "AJAP_31995": ["ECH_1"],
-            "AJAP_32000": ["ECH_1"],
-            "AJAP_32005": ["Chal_sti_synt_C", "Chal_sti_synt_N"],
-            "AJAP_32060": ["Aminotran_1_2"],
-        }
-        cds_mapping = {result.cds.get_name(): sorted(result.definition_domains[dhpg.rule.name])
-                       for result in dhpg.cds_results}
-        assert cds_mapping == expected
-
+        assert len(dhpg.domain_hits) == 6
+        assert sorted((hit.cds_name, hit.domain_name) for hit in dhpg.domain_hits) == [
+            ("AJAP_31990", "ECH_1"),
+            ("AJAP_31995", "ECH_1"),
+            ("AJAP_32000", "ECH_1"),
+            ("AJAP_32005", "Chal_sti_synt_C"),
+            ("AJAP_32005", "Chal_sti_synt_N"),
+            ("AJAP_32060", "Aminotran_1_2"),
+        ]
         aminotransferase = dhpg.domain_hits_by_cds["AJAP_32060"][0]
         assert aminotransferase.domain_accession == "PF00155.24"
         assert aminotransferase.domain_description == "Aminotransferase class I and II"
 
         assert hpg.rule.name == "SCG0042"
         assert hpg.location == FeatureLocation(27846, 80710, 1)
-        assert len(hpg.cds_results) == 4
-        assert {result.cds.get_name(): sorted(result.definition_domains["SCG0042"])
-                for result in hpg.cds_results} == {
-            "AJAP_32035": ["FMN_dh"],
-            "AJAP_32040": ["Glyoxalase", "Glyoxalase_4"],
-            "AJAP_32060": ["Aminotran_1_2"],
-            "AJAP_32155": ["PDH_C", "PDH_N"],
-        }
+        assert len(hpg.domain_hits) == 6
+        assert sorted((hit.cds_name, hit.domain_name) for hit in hpg.domain_hits) == [
+            ("AJAP_32035", "FMN_dh"),
+            ("AJAP_32040", "Glyoxalase"),
+            ("AJAP_32040", "Glyoxalase_4"),
+            ("AJAP_32060", "Aminotran_1_2"),
+            ("AJAP_32155", "PDH_C"),
+            ("AJAP_32155", "PDH_N"),
+        ]
 
