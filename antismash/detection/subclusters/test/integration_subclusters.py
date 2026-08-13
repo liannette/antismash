@@ -115,7 +115,8 @@ class TestSubclusters(unittest.TestCase):
         destroy_config()
 
     def get_args(self):
-        return ["--minimal", "--subclusters", "--subclusters", "any", "--enable-html"]
+        return ["--minimal", "--subclusters", "--subclusters-region-mode", "create",
+                "--enable-html"]
 
     def test_full_pathway(self):
         features = []

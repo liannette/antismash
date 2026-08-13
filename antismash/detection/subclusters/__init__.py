@@ -48,19 +48,19 @@ def get_arguments() -> ModuleArgs:
                           "subcluster detection. Levels are cumulative, so "
                           "looser levels also include all stricter rules "
                           "(default: %(default)s)."))
-    args.add_option('subregions',
+    args.add_option('region-mode',
                     dest='subregion_mode',
                     type=str,
                     choices=list(SubRegionMode),
                     default=str(SubRegionMode.CLIP).lower(),
-                    help=("How far detected subclusters may alter region boundaries "
-                          "when added as subregions: 'clip' keeps only the parts "
-                          "overlapping a cluster found by another detection module, "
-                          "truncated to that cluster's boundaries, so regions never "
-                          "grow; 'extend' keeps overlapping subclusters in full, so "
-                          "they can extend an existing region; 'any' keeps every "
-                          "subcluster in full, so they can also form standalone "
-                          "regions (default: %(default)s)."))
+                    help=("How far detected subclusters may influence region formation. "
+                          "The 'clip' option keeps only the part of a subcluster "
+                          "overlapping an area found by another detection module, "
+                          "truncated to that area, so regions can never grow. The "
+                          "'extend' option keeps overlapping subclusters in full, so "
+                          "they can extend an existing region. The 'create' option keeps "
+                          "every subcluster in full, so they can also create "
+                          "standalone regions. (default: %(default)s)."))
     return args
 
 

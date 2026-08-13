@@ -11,7 +11,7 @@ depends on the mode used:
            are kept, truncated to that area, so regions can never grow
  - "extend": overlapping subclusters are kept in full, so they can extend an
              existing region, but subclusters without any overlap are discarded
- - "any": every subcluster is kept in full, so they can also form new regions
+ - "create": every subcluster is kept in full, so they can also create new regions
 """
 from enum import StrEnum, auto
 from typing import Sequence
@@ -31,7 +31,7 @@ LABEL = "subclusters"
 class SubRegionMode(StrEnum):
     CLIP = auto()
     EXTEND = auto()
-    ANY = auto()
+    CREATE = auto()
 
 
 def gather_foreign_areas(record: Record) -> list[CDSCollection]:
@@ -70,8 +70,8 @@ def build_subregions(record: Record, areas: Sequence[CDSCollection], *, tool: st
         for location, _ in record.get_potential_regions(areas)
     ]
 
-    # "any": every subcluster is used for subregion formation
-    if mode == SubRegionMode.ANY:
+    # "create": every subcluster is used for subregion formation
+    if mode == SubRegionMode.CREATE:
         return subregions
 
     # for "extend" and "clip", the merged areas of the other modules are needed
