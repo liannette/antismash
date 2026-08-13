@@ -34,6 +34,7 @@ def generate_html(region_layer: RegionLayer, results: SubclusterDetectionResults
 def generate_javascript_data(record: Record, region: Region,
                              results: SubclusterDetectionResults) -> list[Any]:
     region_anchor = f"r{record.record_index}c{region.get_region_number()}"
+    template = FileTemplate(path.get_full_path(__file__, "templates", "cds_tooltip.html"))
 
     predictions = results.get_predictions_for_region(region)
 
@@ -53,6 +54,7 @@ def generate_javascript_data(record: Record, region: Region,
             cds_results.append({
                 "cds": cds_name,
                 "domains": domains,
+                "tooltip" : template.render(domains=domains, cds_name=cds_name),
             })
 
         data.append({

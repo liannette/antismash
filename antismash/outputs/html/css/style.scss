@@ -1973,7 +1973,7 @@ ul.dropdown-options {
             padding: 0.2em 0.8em;
         }
 
-        tbody td:nth-child(1), tbody td:nth-child(2) {
+        tbody td:nth-child(2) {
             @extend .serif;
         }
 
@@ -1993,7 +1993,42 @@ ul.dropdown-options {
         height: 1.5em;
         margin-left: 2%;
         margin-right: 2%;
-        margin-top: 0.1em;
+        margin-top: 0.7em;
         margin-bottom: 1em;
+    }
+}
+
+.subclusters-tooltip {
+    @extend .jsdomain-tooltip;
+    width: auto;
+    max-width: 35em;
+
+    .subclusters-tooltip-header {
+        margin-bottom: 0.5em;
+
+        .subclusters-tooltip-cds-name {
+            @extend .serif;
+            font-weight: bold;
+        }
+
+        .subclusters-tooltip-subheader {
+            font-size: 90%;
+            color: #b0b0b0;
+
+            &::before {
+                content: " - ";
+            }
+        }
+    }
+
+    .subclusters-tooltip-domains {
+        display: grid;
+        grid-template-columns: max-content auto;
+        column-gap: 1.5em;
+        row-gap: 0.2em;
+    }
+
+    .subclusters-tooltip-domain-name {
+        font-weight: bold;
     }
 }
