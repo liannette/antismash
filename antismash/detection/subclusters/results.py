@@ -23,7 +23,7 @@ class SubclusterDetectionResults(DetectionResults):
             strictness: str,
             predictions: list[SubclusterPrediction],
             subregions: list[SubRegion],
-            subregion_mode: SubRegionMode = SubRegionMode.CLIP,
+            subregion_mode: SubRegionMode,
     ) -> None:
 
         if subregion_mode not in SubRegionMode:
@@ -38,10 +38,10 @@ class SubclusterDetectionResults(DetectionResults):
         self.subregions = subregions
 
     def get_predictions_for_region(self, region: Region) -> list[SubclusterPrediction]:
-        """Return all predictions fully contained within the given region."""
+        """Return all predictions overlapping the given region."""
         return [
             prediction for prediction in self.predictions
-            if location_contains_other(region.location, prediction.location)
+            if region.overlaps_with(prediction.location)
         ]
 
     def get_predicted_subregions(self) -> list[SubRegion]:
