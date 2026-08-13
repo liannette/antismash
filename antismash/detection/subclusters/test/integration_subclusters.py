@@ -146,6 +146,7 @@ class TestSubclusters(unittest.TestCase):
         dhpg, hpg = results.predictions
 
         assert dhpg.rule.name == "SCG0041"
+        assert dhpg.compound.name == "3,5-Dihydroxyphenylglycine (Dhpg)"
         assert dhpg.location == FeatureLocation(17866, 35294, 1)
         assert len(dhpg.domain_hits) == 6
         assert sorted((hit.cds_name, hit.domain_name) for hit in dhpg.domain_hits) == [
@@ -161,6 +162,7 @@ class TestSubclusters(unittest.TestCase):
         assert aminotransferase.domain_description == "Aminotransferase class I and II"
 
         assert hpg.rule.name == "SCG0042"
+        assert hpg.compound.name == "4-Hydroxyphenylglycine (Hpg)"
         assert hpg.location == FeatureLocation(27846, 80710, 1)
         assert len(hpg.domain_hits) == 6
         assert sorted((hit.cds_name, hit.domain_name) for hit in hpg.domain_hits) == [
