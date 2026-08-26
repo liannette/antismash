@@ -4,10 +4,13 @@
 # for test files, silence irrelevant and noisy pylint warnings
 # pylint: disable=use-implicit-booleaness-not-comparison,protected-access,missing-docstring
 
+import glob
+import os
 import tempfile
 import unittest
 
 import antismash
+from antismash.common.secmet import Record
 from antismash.common.secmet.locations import FeatureLocation
 from antismash.common.secmet.test.helpers import DummyCDS, DummyRecord
 from antismash.common.test.helpers import run_and_regenerate_results_for_module
@@ -16,6 +19,7 @@ from antismash.detection import subclusters
 
 
 DATA = {
+    # dhpg
     "AJAP_31990": {
         "location": [17866, 18657],
         "translation": (
@@ -26,6 +30,7 @@ DATA = {
             "TGR"
         ),
     },
+    # dhpg
     "AJAP_31995": {
         "location": [18654, 19868],
         "translation": (
@@ -38,6 +43,7 @@ DATA = {
             "DVIGKVDGFAVGSR"
         )
     },
+    # dhpg
     "AJAP_32000": {
         "location": [18865, 20527],
         "translation": (
@@ -47,6 +53,7 @@ DATA = {
             "STTFEEALGSHLAAADRALRREAKS"
         )
     },
+    # dhpg
     "AJAP_32005": {
         "location": [20521, 21621],
         "translation": (
@@ -58,30 +65,9 @@ DATA = {
             "SGSFLFSYERLADEDVARPGDYGVLMTMGPGSTIEMALIQW"
         )        
     },
-    "AJAP_32035": {
-        "location": [27846, 28916],
-        "translation": (
-            "MTHLCLDDLERAARTALPGEIWDFLAGGSGAEASLAANRTALDRIFVIPRMLRELTGGTTEAEVL"
-            "GRRASLPVAVAPVAYQRLFHPEGELAAARAARDAGVPYTICTLSSVPLEEIAVVGGRPWFQLYWL"
-            "RDEKRSLELVRRAEDAGCEAIVFTVDVPWMGRRLRDMRNGFALPESVTAANFDAGAAAHRRTEGL"
-            "SAVADHTAREFAPATWESVEAVRAHTNLPVVLKGILAVEDAVRAVDAGATGIVVSNHGGRQLDGA"
-            "VPGIAMLEEIADAVSGGCEVLLDGGIRTGGDVLKALALGASGVLIGRPFMWGLAADGQAGARQVL"
-            "DLLAVELRNALGLAGCDSVSAARRLSTRYER"
-        )
-    },
-    "AJAP_32040": {
-        "location": [28913, 29965],
-        "translation" :(
-            "MSSHENTQNFEIDYVEMYVANLEVAASGWLDKYDFSVTATDRSADHRSVTLRHSAIALVLTEPLS"
-            "DRHPGATYLQTHGEGVADIALRTTDVAAAFEAAVKAGAKPLREPEKGVDSVLTATVSGFGDVVHT"
-            "LIQSDVAEEAPRGKGGVELGVIDHFAVCLNAGDLGPTVAFYERALGFKQIFEEHIVVGAQAMNST"
-            "VVQSTSGAVTLTLIEPDKTADPGQIDDFIKEHHGSGVQHIAFTSPDAVRAVKELSARGVEFLKTP"
-            "DAYYDLLGERIELETHSLDDLRETKLLADEDHGGQLFQIFTASTHPRKTIFFEIIERQGAGTFGS"
-            "SNIKALYEAVELERTGQSKLGPARR"
-        )
-    },
+    # dhpg and hpg 
     "AJAP_32060": {
-        "location": [33933, 35294],
+        "location": [43933, 45294],
         "translation" : (
             "MDNSRKRGVHRLFLTLRRTVEILVFMDSNGLSTHLNVETLHGSLTDPAISSMNLLNELIDEYPVA"
             "ISMAAGRPYEEFFDIRLIHTYLDAYCDHLRRDRKMDEAVVTRTLFQYGTTKGVIADLIAKNLAED"
@@ -92,8 +78,81 @@ DATA = {
             "FVVDDELLETAAREHGVLFTPMHHFYGGKGGFHQLRLSISLLTPELIEEGVARLAALIKPRLP"
         )
     },
+    # hpg
+    "AJAP_32035": {
+        "location": [57846, 58916],
+        "translation": (
+            "MTHLCLDDLERAARTALPGEIWDFLAGGSGAEASLAANRTALDRIFVIPRMLRELTGGTTEAEVL"
+            "GRRASLPVAVAPVAYQRLFHPEGELAAARAARDAGVPYTICTLSSVPLEEIAVVGGRPWFQLYWL"
+            "RDEKRSLELVRRAEDAGCEAIVFTVDVPWMGRRLRDMRNGFALPESVTAANFDAGAAAHRRTEGL"
+            "SAVADHTAREFAPATWESVEAVRAHTNLPVVLKGILAVEDAVRAVDAGATGIVVSNHGGRQLDGA"
+            "VPGIAMLEEIADAVSGGCEVLLDGGIRTGGDVLKALALGASGVLIGRPFMWGLAADGQAGARQVL"
+            "DLLAVELRNALGLAGCDSVSAARRLSTRYER"
+        )
+    },
+    # hpg
+    "AJAP_32040": {
+        "location": [58913, 59965],
+        "translation" :(
+            "MSSHENTQNFEIDYVEMYVANLEVAASGWLDKYDFSVTATDRSADHRSVTLRHSAIALVLTEPLS"
+            "DRHPGATYLQTHGEGVADIALRTTDVAAAFEAAVKAGAKPLREPEKGVDSVLTATVSGFGDVVHT"
+            "LIQSDVAEEAPRGKGGVELGVIDHFAVCLNAGDLGPTVAFYERALGFKQIFEEHIVVGAQAMNST"
+            "VVQSTSGAVTLTLIEPDKTADPGQIDDFIKEHHGSGVQHIAFTSPDAVRAVKELSARGVEFLKTP"
+            "DAYYDLLGERIELETHSLDDLRETKLLADEDHGGQLFQIFTASTHPRKTIFFEIIERQGAGTFGS"
+            "SNIKALYEAVELERTGQSKLGPARR"
+        )
+    },
+    # hpg
     "AJAP_32155": {
         "location": [79880, 80710],
+        "translation": (
+            "MTIEKALVVGTGLIGTSAALSLREKGVAVHLSDIDAQAVRVARELGAGREWTGEEVDLAVIAVPP"
+            "QLVGERLAELQKRGAARAYTDVASVKVDPIADAERLGCDMTSYVPGHPLAGRERSGPAAARAGLF"
+            "AGRPWALCPGPGTGAEALRLTRGLVALCGAEAVTVGAAEHDSAVALVSHAPHVAASAVAASLASG"
+            "DDVALSLAGQGLRDVTRIAAGNPLLWRRILSGNAVPVAAVLDRIAADLAAAATALRAGDLDDLTE"
+            "LLRRGVDGHGRIPAIG"
+        )
+    },
+    # hpg_2 (far away)
+    "AJAP_32060_2": {
+        "location": [343933, 345294],
+        "translation" : (
+            "MDNSRKRGVHRLFLTLRRTVEILVFMDSNGLSTHLNVETLHGSLTDPAISSMNLLNELIDEYPVA"
+            "ISMAAGRPYEEFFDIRLIHTYLDAYCDHLRRDRKMDEAVVTRTLFQYGTTKGVIADLIAKNLAED"
+            "ENIDAAPESVVVTVGAQEAMFLVLRTLRAGERDVLLAPAPTYVGLTGAALLTDTPVWPVRSNENG"
+            "IDPDDLVLQLKRADEQGKRVRACYVTPNFANPTGTSMDLPSRHRLLDVAESNGILLLEDNAYGLF"
+            "GSERLPSLKSLDRSGSVVYLGSFAKTGMPGARVGFAVADQRMADGGLFADQLSKLKGMLTVNTSP"
+            "IAQAVIAGKLLLNDFSLTKANAREIAIYQRNLRLTLDALERGLGSCEGVSWNTPTGGFFVTVTVP"
+            "FVVDDELLETAAREHGVLFTPMHHFYGGKGGFHQLRLSISLLTPELIEEGVARLAALIKPRLP"
+        )
+    },
+    # hpg_2 (far away)
+    "AJAP_32035_2": {
+        "location": [357846, 358916],
+        "translation": (
+            "MTHLCLDDLERAARTALPGEIWDFLAGGSGAEASLAANRTALDRIFVIPRMLRELTGGTTEAEVL"
+            "GRRASLPVAVAPVAYQRLFHPEGELAAARAARDAGVPYTICTLSSVPLEEIAVVGGRPWFQLYWL"
+            "RDEKRSLELVRRAEDAGCEAIVFTVDVPWMGRRLRDMRNGFALPESVTAANFDAGAAAHRRTEGL"
+            "SAVADHTAREFAPATWESVEAVRAHTNLPVVLKGILAVEDAVRAVDAGATGIVVSNHGGRQLDGA"
+            "VPGIAMLEEIADAVSGGCEVLLDGGIRTGGDVLKALALGASGVLIGRPFMWGLAADGQAGARQVL"
+            "DLLAVELRNALGLAGCDSVSAARRLSTRYER"
+        )
+    },
+    # hpg_2 (far away)
+    "AJAP_32040_2": {
+        "location": [358913, 359965],
+        "translation" :(
+            "MSSHENTQNFEIDYVEMYVANLEVAASGWLDKYDFSVTATDRSADHRSVTLRHSAIALVLTEPLS"
+            "DRHPGATYLQTHGEGVADIALRTTDVAAAFEAAVKAGAKPLREPEKGVDSVLTATVSGFGDVVHT"
+            "LIQSDVAEEAPRGKGGVELGVIDHFAVCLNAGDLGPTVAFYERALGFKQIFEEHIVVGAQAMNST"
+            "VVQSTSGAVTLTLIEPDKTADPGQIDDFIKEHHGSGVQHIAFTSPDAVRAVKELSARGVEFLKTP"
+            "DAYYDLLGERIELETHSLDDLRETKLLADEDHGGQLFQIFTASTHPRKTIFFEIIERQGAGTFGS"
+            "SNIKALYEAVELERTGQSKLGPARR"
+        )
+    },
+    # hpg_2 (far away)
+    "AJAP_32155_2": {
+        "location": [379880, 380710],
         "translation": (
             "MTIEKALVVGTGLIGTSAALSLREKGVAVHLSDIDAQAVRVARELGAGREWTGEEVDLAVIAVPP"
             "QLVGERLAELQKRGAARAYTDVASVKVDPIADAERLGCDMTSYVPGHPLAGRERSGPAAARAGLF"
@@ -104,50 +163,78 @@ DATA = {
     }
 }
 
+# the core cluster detection finds a T3PKS protocluster around AJAP_32005
+T3PKS_SPAN = FeatureLocation(521, 41621, 1)
+
+# the subclusters detected in this record
+DHPG_SPAN = FeatureLocation(17866, 45294, 1)  # overlaps with T3PKS_SPAN and HPG_SPAN
+HPG_SPAN = FeatureLocation(43933, 80710, 1)  # overlaps with DHPG_SPAN 
+HPG_2_SPAN = FeatureLocation(343933, 380710, 1)  # overlaps with nothing
+
 
 class TestSubclusters(unittest.TestCase):
+
     def setUp(self):
-        options = build_config(self.get_args(), isolated=True, modules=antismash.get_all_modules())
-        self.options = update_config(options)
         subclusters.prepare_data()
 
     def tearDown(self):
         destroy_config()
 
-    def get_args(self):
-        return ["--minimal", "--subclusters", "--subclusters-region-mode", "create",
+    def get_args(self, mode="create"):
+        return ["--minimal", "--subclusters", "--subclusters-region-mode", mode,
                 "--enable-html"]
 
-    def test_full_pathway(self):
+    def build_options(self, mode="create"):
+        """Replace any active config with one for the given subregion mode."""
+        destroy_config()
+        return update_config(build_config(self.get_args(mode), isolated=True,
+                                          modules=antismash.get_all_modules()))
+
+    def build_record(self):
+        """The test record on its own, without any area from another module."""
         features = []
         for name, data in DATA.items():
             features.append(DummyCDS(locus_tag=name, start=data["location"][0],
                                      end=data["location"][1], translation=data["translation"]))
-        record = DummyRecord(seq="A" * features[-1].end, features=features)
+        return DummyRecord(seq="A" * max(feature.end for feature in features), features=features)
+
+    def run_with_mode(self, mode):
+        """Run the whole pipeline in the given mode.
+
+        Returns this module's results along with the regions the pipeline formed,
+        which have to be read back from the written output as the helper itself
+        only returns the results.
+        """
+        options = self.build_options(mode)
+        record = self.build_record()
+        regions = []
+
+        def capture_regions(output_dir):
+            written = [name for name in glob.glob(os.path.join(output_dir, "*.gbk"))
+                       if ".region" not in name]
+            regions.extend(Record.from_genbank(written[0])[0].get_regions())
+
         with tempfile.NamedTemporaryFile(suffix=".gbk") as temp:
             record.to_genbank(temp.name)
-            results = run_and_regenerate_results_for_module(temp.name, subclusters, self.options)
-
-        assert results
-
-        predicted_subregions = results.get_predicted_subregions()
-        assert len(predicted_subregions) == 1
-        assert predicted_subregions[0].label == "subclusters"
-        assert predicted_subregions[0].location == FeatureLocation(17866, 80710, 1)
-        assert predicted_subregions[0].tool == "subclusters"
-
-        assert len(results.rule_results.protoclusters) == 2
+            results = run_and_regenerate_results_for_module(temp.name, subclusters, options,
+                                                            callback=capture_regions)
+        return results, regions
+    
+    def check_detection(self, results):
+        """Check the detection itself, which none of the subregion modes affect."""
+        assert len(results.rule_results.protoclusters) == 3
         assert [(proto.product, proto.location) for proto in results.rule_results.protoclusters] == [
-            ("SCG0041", FeatureLocation(17866, 35294, 1)),
-            ("SCG0042", FeatureLocation(27846, 80710, 1)),
+            ("SCG0041", DHPG_SPAN),
+            ("SCG0042", HPG_SPAN),
+            ("SCG0042", HPG_2_SPAN),
         ]
 
-        assert len(results.predictions) == 2
-        dhpg, hpg = results.predictions
+        assert len(results.predictions) == 3
+        dhpg, hpg, hpg_2 = results.predictions
 
         assert dhpg.rule.name == "SCG0041"
         assert dhpg.compound.name == "3,5-Dihydroxyphenylglycine (Dhpg)"
-        assert dhpg.location == FeatureLocation(17866, 35294, 1)
+        assert dhpg.location == DHPG_SPAN
         assert len(dhpg.domain_hits) == 6
         assert sorted((hit.cds_name, hit.domain_name) for hit in dhpg.domain_hits) == [
             ("AJAP_31990", "ECH_1"),
@@ -163,7 +250,7 @@ class TestSubclusters(unittest.TestCase):
 
         assert hpg.rule.name == "SCG0042"
         assert hpg.compound.name == "4-Hydroxyphenylglycine (Hpg)"
-        assert hpg.location == FeatureLocation(27846, 80710, 1)
+        assert hpg.location == HPG_SPAN
         assert len(hpg.domain_hits) == 6
         assert sorted((hit.cds_name, hit.domain_name) for hit in hpg.domain_hits) == [
             ("AJAP_32035", "FMN_dh"),
@@ -174,3 +261,65 @@ class TestSubclusters(unittest.TestCase):
             ("AJAP_32155", "PDH_N"),
         ]
 
+        # same HGP subcluster, but further upstream
+        assert hpg_2.location == HPG_2_SPAN
+
+
+    def test_full_pathway_clip_mode(self):
+        results, regions = self.run_with_mode("clip")
+        assert results
+
+        # detection itself, unaffected by the mode
+        self.check_detection(results)
+
+        # subregion formation: dhpg protocluster span clipped to T3PKS boundaries
+        predicted_subregions = results.get_predicted_subregions()
+        assert len(predicted_subregions) == 1
+        assert predicted_subregions[0].label == "subclusters"
+        assert predicted_subregions[0].tool == "subclusters"
+        assert predicted_subregions[0].location == FeatureLocation(DHPG_SPAN.start, T3PKS_SPAN.end, 1)
+
+        # region formation: only span of T3PKS protocluster
+        assert len(regions) == 1
+        assert regions[0].location == T3PKS_SPAN
+
+    def test_full_pathway_extend_mode(self):
+        results, regions = self.run_with_mode("extend")
+        assert results
+
+        # detection itself, unaffected by the mode
+        self.check_detection(results)
+
+        # subregion formation: full dhpg protocluster span
+        predicted_subregions = results.get_predicted_subregions()
+        assert len(predicted_subregions) == 1
+        assert predicted_subregions[0].label == "subclusters"
+        assert predicted_subregions[0].tool == "subclusters"
+        assert predicted_subregions[0].location == DHPG_SPAN
+
+        # region formation: panning protoclusters for T3PKS and dhpg
+        assert len(regions) == 1
+        assert regions[0].location == FeatureLocation(T3PKS_SPAN.start, DHPG_SPAN.end, 1)
+
+    def test_full_pathway_create_mode(self):
+        results, regions = self.run_with_mode("create")
+        assert results
+
+        # detection itself, unaffected by the mode
+        self.check_detection(results)
+
+        # subregion formation: spanning protoclusters for dhpg and hpg
+        predicted_subregions = results.get_predicted_subregions()
+        assert len(predicted_subregions) == 2
+
+        for subregion in predicted_subregions:
+            assert subregion.label == "subclusters"
+            assert subregion.tool == "subclusters"
+        assert predicted_subregions[0].location == FeatureLocation(DHPG_SPAN.start, HPG_SPAN.end, 1)
+        assert predicted_subregions[1].location == HPG_2_SPAN
+
+        # region formation: spanning protoclusters for T3PKS, dhpg and hpg
+        assert len(regions) == 2
+        assert regions[0].location == FeatureLocation(T3PKS_SPAN.start, HPG_SPAN.end, 1)
+        assert regions[1].location == HPG_2_SPAN
+                
