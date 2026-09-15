@@ -30,9 +30,9 @@ LABEL = "subclusters"
 
 class SubRegionMode(StrEnum):
     """ The ways in which a detected subcluster may alter region boundaries """
-    CLIP = auto()
-    EXTEND = auto()
     CREATE = auto()
+    EXTEND = auto()
+    CLIP = auto()
 
 
 def gather_foreign_areas(record: Record) -> list[CDSCollection]:
