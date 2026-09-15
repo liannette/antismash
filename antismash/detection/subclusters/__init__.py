@@ -75,10 +75,10 @@ def check_options(options: ConfigType) -> list[str]:
 
     try:
         SubRegionMode[options.subclusters_subregion_mode.upper()]
-    except ValueError:
-        return [f"Unknown subcluster subregion mode: {options.subclusters_subregion_mode}"]
+    except KeyError:
+        errors.append(f"Unknown subcluster subregion mode: {options.subclusters_subregion_mode}")
 
-    return []
+    return errors
 
 
 def is_enabled(options: ConfigType) -> bool:
