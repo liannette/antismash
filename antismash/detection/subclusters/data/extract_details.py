@@ -2,8 +2,7 @@
 # License: GNU Affero General Public License v3 or later
 # A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt.
 
-"""
-Helper script to generate a hmmdetails.txt line for the given subcluster profile.
+""" Helper script to generate a hmmdetails.txt line for the given subcluster profile
 
 Output columns (tab-separated): name  description  cutoff  hmm_file  [accession]
 """

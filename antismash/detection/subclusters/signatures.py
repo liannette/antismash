@@ -1,7 +1,7 @@
 # License: GNU Affero General Public License v3 or later
 # A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt.
 
-"""HMM signatures for the subcluster detection module."""
+""" HMM signatures for the subcluster detection module """
 
 from antismash.common import path
 from antismash.common.signature import HmmSignature
@@ -16,7 +16,7 @@ _SIGNATURE_CACHE: dict[str, "SubclusterHmmSignature"] = {}
 
 
 class SubclusterHmmSignature(HmmSignature):
-    """An HMM signature extended an accession."""
+    """ An HMM signature, extended with the accession of the source profile """
 
     def __init__(self, name: str, description: str, cutoff: int,
                  hmm_path: str, seed_count: int = 0, *,
@@ -26,7 +26,9 @@ class SubclusterHmmSignature(HmmSignature):
 
 
 def _ensure_signatures_loaded() -> None:
-    """Load the subcluster HMM signatures from disk into the cache, once."""
+    """ Loads the subcluster HMM signatures from disk into the cache, if not
+        already loaded
+    """
     if _SIGNATURE_CACHE:
         return
     signatures = _read_signatures(DETAILS_FILE)
@@ -36,17 +38,30 @@ def _ensure_signatures_loaded() -> None:
 
 
 def get_signatures() -> dict[str, SubclusterHmmSignature]:
-    """Return all subcluster HMM signatures, keyed by name, loading from disk
-    on first call.
+    """ Returns all subcluster HMM signatures, loading them from disk on the
+        first call
+
+        Returns:
+            a dictionary mapping signature name to the relevant signature
     """
     _ensure_signatures_loaded()
     return _SIGNATURE_CACHE
 
 
 def _read_signatures(detail_file: str) -> list[SubclusterHmmSignature]:
-    """Parse a 5-column hmmdetails TSV into signature objects.
+    """ Generates subcluster HMM signatures from a file
 
-    Columns (tab-separated): name  description  cutoff  hmm_file  accession
+        The file is expected to be tab separated, each row being a single HMM
+        reference with the columns: name, description, minimum score cutoff,
+        HMM path, and accession. Paths in the file are assumed to be relative to
+        the file itself. Lines starting with '#' are treated as comments and
+        ignored.
+
+        Arguments:
+            detail_file: the path of the file to parse
+
+        Returns:
+            a list of SubclusterHmmSignatures
     """
     bad_lines: list[str] = []
     signatures: list[SubclusterHmmSignature] = []

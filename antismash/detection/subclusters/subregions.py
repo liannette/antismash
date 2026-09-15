@@ -1,17 +1,17 @@
 # License: GNU Affero General Public License v3 or later
 # A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt.
 
-"""Construction of sub-regions from detected subclusters.
+""" Construction of sub-regions from detected subclusters
 
-Sub-regions built here are added to the record during the region-formation step
-of the main pipeline, letting subclusters extend existing regions or form new
-ones. How far a detected subcluster is allowed to alter region boundaries
-depends on the mode used:
- - "clip": only the parts overlapping an area found by another detection module
-           are kept, truncated to that area, so regions can never grow
- - "extend": overlapping subclusters are kept in full, so they can extend an
-             existing region, but subclusters without any overlap are discarded
- - "create": every subcluster is kept in full, so they can also create new regions
+    Sub-regions built here are added to the record during the region-formation
+    step of the main pipeline, letting subclusters extend existing regions or
+    form new ones. How far a detected subcluster is allowed to alter region
+    boundaries depends on the mode used:
+     - "create": every subcluster is kept in full, so they can also create new regions
+     - "extend": overlapping subclusters are kept in full, so they can extend an
+                 existing region, but subclusters without any overlap are discarded
+     - "clip": only the parts overlapping an area found by another detection
+               module are kept, truncated to that area, so regions can never grow
 """
 from enum import StrEnum, auto
 from typing import Sequence
@@ -29,16 +29,24 @@ LABEL = "subclusters"
 
 
 class SubRegionMode(StrEnum):
+    """ The ways in which a detected subcluster may alter region boundaries """
     CLIP = auto()
     EXTEND = auto()
     CREATE = auto()
 
 
 def gather_foreign_areas(record: Record) -> list[CDSCollection]:
-    """Protoclusters and subregions on the record from other detection modules.
+    """ Returns the protoclusters and sub-regions of a record, all of which
+        belong to other detection modules
 
-    This module's own protoclusters are never added to the record, so everything
-    found here belongs to a module that has already run.
+        This module's own protoclusters are never added to the record, so
+        everything found here belongs to a module that has already run.
+
+        Arguments:
+            record: the record to gather areas from
+
+        Returns:
+            a list of areas, which may be empty
     """
     areas: list[CDSCollection] = list(record.get_protoclusters())
     areas.extend(record.get_subregions())
@@ -47,17 +55,17 @@ def gather_foreign_areas(record: Record) -> list[CDSCollection]:
 
 def build_subregions(record: Record, areas: Sequence[CDSCollection], *, tool: str,
                      mode: SubRegionMode) -> list[SubRegion]:
-    """Build the sub-region features for a set of detected subclusters.
+    """ Builds the sub-region features for a set of detected subclusters
 
-    Arguments:
-        record: the record the subclusters were detected in, which must already
-            contain the areas found by any earlier detection module
-        areas: the areas detected by this module, i.e. its protoclusters
-        tool: the tool name to set on each resulting sub-region
-        mode: how far the subclusters may alter region boundaries
+        Arguments:
+            record: the record the subclusters were detected in, which must already
+                    contain the areas found by any earlier detection module
+            areas: the areas detected by this module, i.e. its protoclusters
+            tool: the tool name to set on each resulting sub-region
+            mode: how far the subclusters may alter region boundaries
 
-    Returns:
-        a list of sub-regions, which may be empty
+        Returns:
+            a list of sub-regions, which may be empty
     """
     if mode not in SubRegionMode:
         raise ValueError(f"Unknown subcluster subregion mode: {mode!r}")

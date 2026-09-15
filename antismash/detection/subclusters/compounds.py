@@ -1,7 +1,7 @@
 # License: GNU Affero General Public License v3 or later
 # A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt.
 
-"""Compound metadata for the subcluster detection module."""
+""" Compound metadata for the subcluster detection module """
 
 from dataclasses import dataclass
 from typing import Optional
@@ -11,7 +11,13 @@ from antismash.common import path
 
 @dataclass(frozen=True)
 class CompoundInfo:
-    """Chemical metadata associated with a subcluster rule."""
+    """ Chemical metadata associated with a subcluster rule
+
+        Attributes:
+            name: the name of the compound
+            smiles: the SMILES string of the compound, if one is known
+            classification: the chemical classes the compound belongs to
+    """
     name: str
     smiles: Optional[str]
     classification: list[str]
@@ -21,7 +27,7 @@ _COMPOUND_CACHE: dict[str, CompoundInfo] = {}
 
 
 def _ensure_compounds_loaded() -> None:
-    """Load the compound details from disk into the cache, once."""
+    """ Loads the compound details from disk into the cache, if not already loaded """
     if _COMPOUND_CACHE:
         return
     filename = path.get_full_path(__file__, "data", "compound_details.txt")
@@ -29,27 +35,34 @@ def _ensure_compounds_loaded() -> None:
 
 
 def get_compound(rule_name: str) -> CompoundInfo:
-    """Return the compound metadata for a single rule, loading from disk on
-    first call.
+    """ Returns the compound metadata for a single rule, loading the details
+        from disk on the first call
 
-    Arguments:
-        rule_name: the name of the detection rule
+        Every rule is expected to have a matching entry in the details file.
 
-    Returns:
-        the compound associated with the rule
+        Arguments:
+            rule_name: the name of the detection rule
 
-    Raises:
-        ValueError: if the rule has no entry in the compound details file
+        Returns:
+            the compound associated with the rule
     """
     _ensure_compounds_loaded()
     return _COMPOUND_CACHE[rule_name]
 
 
 def _read_compounds(detail_file: str) -> dict[str, CompoundInfo]:
-    """Parse compound_details.txt into a dict keyed by rule name.
+    """ Parses a compound details file into a mapping of rule name to compound
 
-    Columns (tab-separated): rule_name  compound_name  smiles  classification
-    Classification is semicolon-separated. Lines starting with # are comments.
+        The file is expected to be tab separated, each row being a single
+        compound with the columns: rule name, compound name, SMILES string, and
+        a semicolon separated classification. Lines starting with '#' are
+        treated as comments and ignored.
+
+        Arguments:
+            detail_file: the path of the file to parse
+
+        Returns:
+            a dictionary mapping rule name to the relevant compound
     """
     compounds: dict[str, CompoundInfo] = {}
     with open(detail_file, encoding="utf-8") as f:

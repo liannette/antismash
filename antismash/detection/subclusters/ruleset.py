@@ -1,7 +1,7 @@
 # License: GNU Affero General Public License v3 or later
 # A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt.
 
-"""Ruleset construction for the subcluster detection module."""
+""" Ruleset construction for the subcluster detection module """
 
 from typing import cast
 
@@ -21,16 +21,16 @@ _CACHE: dict[str, Ruleset] = {}
 
 
 def get_ruleset(strictness: str) -> Ruleset:
-    """Return the parsed rules and signatures for the given strictness level.
+    """ Returns the parsed rules and signatures for the given strictness level
 
-    Results are cached per strictness level.
+        Results are cached, with a single ruleset built per strictness level.
 
-    Arguments:
-        strictness: one of the supported strictness levels, from most to
-            least strict
+        Arguments:
+            strictness: one of the supported strictness levels, from most to
+                        least strict
 
-    Returns:
-        a ruleset ready for use by the rule-based detection pipeline
+        Returns:
+            a ruleset ready for use by the rule-based detection pipeline
     """
     if strictness not in _STRICTNESS_LEVELS:
         raise ValueError(f"Unknown strictness level {strictness!r}. "
@@ -45,16 +45,30 @@ def get_ruleset(strictness: str) -> Ruleset:
 
 
 def _rule_files_for_strictness(strictness: str) -> list[str]:
-    """Return the ordered list of rule files to load for a given strictness level.
+    """ Returns the ordered list of rule files to load for a given strictness level
 
-    Files are loaded in order from most strict to the requested level, so that
-    rules from stricter levels are always included.
+        Files are ordered from the most strict level to the requested level, so
+        that rules from stricter levels are always included.
+
+        Arguments:
+            strictness: the strictness level to gather rule files for
+
+        Returns:
+            a list of paths to rule files
     """
     levels = _STRICTNESS_LEVELS[: _STRICTNESS_LEVELS.index(strictness) + 1]
     return [path.get_full_path(__file__, "subcluster_rules", f"{level}.txt") for level in levels]
 
 
 def _build_ruleset(strictness: str) -> Ruleset:
+    """ Builds, without caching, the ruleset for the given strictness level
+
+        Arguments:
+            strictness: the strictness level to build the ruleset for
+
+        Returns:
+            a ruleset ready for use by the rule-based detection pipeline
+    """
     signatures = get_signatures()
     rules = create_rules(_rule_files_for_strictness(strictness), set(signatures), _CATEGORIES)
 

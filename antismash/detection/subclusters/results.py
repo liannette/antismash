@@ -1,6 +1,8 @@
 # License: GNU Affero General Public License v3 or later
 # A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt.
 
+""" Result handling for the subcluster detection module """
+
 import logging
 from typing import Any, Optional, Self
 
@@ -13,7 +15,7 @@ from .subregions import SubRegionMode, build_subregions
 
 
 class SubclusterDetectionResults(DetectionResults):
-    """Results class for the Subcluster detection module """
+    """ Results for the subcluster detection module """
 
     schema_version = 1  # increment when the JSON format changes
 
@@ -40,22 +42,30 @@ class SubclusterDetectionResults(DetectionResults):
         self.subregions = subregions
 
     def get_predictions_for_region(self, region: Region) -> list[SubclusterPrediction]:
-        """Return all predictions overlapping the given region."""
+        """ Returns all predictions overlapping the given region
+
+            Arguments:
+                region: the region to find predictions for
+
+            Returns:
+                a list of predictions, which may be empty
+        """
         return [
             prediction for prediction in self.predictions
             if region.overlaps_with(prediction.location)
         ]
 
     def get_predicted_subregions(self) -> list[SubRegion]:
-        """Return sub-region features for the detected subclusters.
+        """ Returns the sub-region features for the detected subclusters
 
-        These are built when detection runs, since they depend on the areas
-        found by the other detection modules, and are added to the record during
-        the region-formation step of the main pipeline.
+            These are built when detection runs, since they depend on the areas
+            found by the other detection modules, and are added to the record
+            during the region-formation step of the main pipeline.
         """
         return self.subregions
 
     def to_json(self) -> dict[str, Any]:
+        """ Returns a JSON-ready representation of the instance """
         return {
             "schema_version": self.schema_version,
             "record_id": self.record_id,
@@ -67,6 +77,20 @@ class SubclusterDetectionResults(DetectionResults):
 
     @classmethod
     def from_json(cls, data: dict[str, Any], record: Record) -> Optional[Self]:
+        """ Regenerates the results from a JSON representation
+
+            The results will be discarded if either the schema version of the
+            results themselves or that of the contained rule detection results
+            no longer matches.
+
+            Arguments:
+                data: the JSON representation to rebuild from
+                record: the record the results were generated for
+
+            Returns:
+                the rebuilt instance, or None if the previous results are no
+                longer valid
+        """
         if data.get("schema_version") != cls.schema_version:
             logging.debug(
                 "Discarding subcluster results: schema version %s != %s",
@@ -95,6 +119,9 @@ class SubclusterDetectionResults(DetectionResults):
         )
 
     def add_to_record(self, record: Record) -> None:
+        """ Adds the detected domains as annotations on the CDS features of the
+            given record
+        """
         if record.id != self.record_id:
             raise ValueError("Record to store in and record analysed don't match")
         self.rule_results.annotate_cds_features()

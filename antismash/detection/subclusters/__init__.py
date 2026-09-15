@@ -1,7 +1,8 @@
 # License: GNU Affero General Public License v3 or later
 # A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt.
 
-"""Detection of subclusters
+""" Detection of subclusters, i.e. sets of genes responsible for producing a
+    specific chemical moiety
 """
 import logging
 import os
@@ -81,13 +82,12 @@ def check_options(options: ConfigType) -> list[str]:
 
 
 def is_enabled(options: ConfigType) -> bool:
-    """  Uses the supplied options to determine if the module should be run
-    """
+    """ Uses the supplied options to determine if the module should be run """
     return options.subclusters
 
 
 def prepare_data(logging_only: bool = False) -> list[str]:
-    """ Ensures packaged data is fully prepared.
+    """ Ensures packaged data is fully prepared
 
         Aggregates the individual subcluster HMM signatures into a single
         combined profile database and presses it with hmmpress, regenerating
@@ -141,13 +141,15 @@ def check_prereqs(options: ConfigType) -> list[str]:
 
 
 def _get_strictness(options: ConfigType) -> str:
-    """ Returns the subcluster detection strictness to use for the given options. """
+    """ Returns the subcluster detection strictness to use for the given options """
     return options.subclusters_strictness
 
 
 def regenerate_previous_results(results: dict[str, Any], record: Record,
                                 options: ConfigType) -> Optional[SubclusterDetectionResults]:
-    """Regenerate previous results."""
+    """ Regenerates previous results, discarding them if either the strictness
+        level or the rules themselves have changed since the previous run
+    """
     if not results:
         return None
     previous = SubclusterDetectionResults.from_json(results, record)
@@ -170,7 +172,7 @@ def regenerate_previous_results(results: dict[str, Any], record: Record,
 
 def run_on_record(record: Record, previous_results: Optional[SubclusterDetectionResults],
                   options: ConfigType) -> SubclusterDetectionResults:
-    """Run subcluster detection on a single record."""
+    """ Runs subcluster detection over the given record """
     if previous_results:
         return previous_results
 

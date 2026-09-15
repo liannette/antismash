@@ -185,13 +185,13 @@ class TestSubclusters(unittest.TestCase):
                 "--enable-html"]
 
     def build_options(self, mode="create"):
-        """Replace any active config with one for the given subregion mode."""
+        """ Replaces any active config with one for the given subregion mode """
         destroy_config()
         return update_config(build_config(self.get_args(mode), isolated=True,
                                           modules=antismash.get_all_modules()))
 
     def build_record(self):
-        """The test record on its own, without any area from another module."""
+        """ Builds the test record on its own, without any area from another module """
         features = []
         for name, data in DATA.items():
             features.append(DummyCDS(locus_tag=name, start=data["location"][0],
@@ -199,11 +199,11 @@ class TestSubclusters(unittest.TestCase):
         return DummyRecord(seq="A" * max(feature.end for feature in features), features=features)
 
     def run_with_mode(self, mode):
-        """Run the whole pipeline in the given mode.
+        """ Runs the whole pipeline in the given mode
 
-        Returns this module's results along with the regions the pipeline formed,
-        which have to be read back from the written output as the helper itself
-        only returns the results.
+            Returns this module's results along with the regions the pipeline
+            formed, which have to be read back from the written output as the
+            helper itself only returns the results.
         """
         options = self.build_options(mode)
         record = self.build_record()
@@ -221,7 +221,7 @@ class TestSubclusters(unittest.TestCase):
         return results, regions
     
     def check_detection(self, results):
-        """Check the detection itself, which none of the subregion modes affect."""
+        """ Checks the detection itself, which none of the subregion modes affect """
         assert len(results.rule_results.protoclusters) == 3
         assert [(proto.product, proto.location) for proto in results.rule_results.protoclusters] == [
             ("SCG0041", DHPG_SPAN),

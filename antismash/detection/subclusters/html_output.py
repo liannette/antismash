@@ -1,7 +1,7 @@
 # License: GNU Affero General Public License v3 or later
 # A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt.
 
-"""Manages HTML construction for the subcluster detection module."""
+""" Manages HTML output for the subcluster detection module """
 
 from typing import Any
 
@@ -21,7 +21,7 @@ def will_handle(_products: list[str], _categories: set[str]) -> bool:
 
 def generate_html(region_layer: RegionLayer, results: SubclusterDetectionResults,
                   _record_layer: RecordLayer, _options: ConfigType) -> HTMLSections:
-    """Build the detail-panel HTML for subcluster predictions in this region."""
+    """ Generates the HTML detail sections for the subclusters within a region """
     predictions = results.get_predictions_for_region(region_layer.region_feature)
 
     tooltip = Markup("Subclusters are sets of genes responsible for producing a specific chemical moiety.")
@@ -36,6 +36,16 @@ def generate_html(region_layer: RegionLayer, results: SubclusterDetectionResults
 
 def generate_javascript_data(record: Record, region: Region,
                              results: SubclusterDetectionResults) -> list[Any]:
+    """ Generates JSON data for the javascript to draw subclusters in HTML output
+
+        Arguments:
+            record: the record the results belong to
+            region: the specific region to generate data for
+            results: the results of the module
+
+        Returns:
+            a list of JSON-friendly dictionaries, one for each subcluster in the region
+    """
     region_anchor = f"r{record.record_index}c{region.get_region_number()}"
     template = FileTemplate(path.get_full_path(__file__, "templates", "cds_tooltip.html"))
 

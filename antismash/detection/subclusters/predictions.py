@@ -1,13 +1,13 @@
 # License: GNU Affero General Public License v3 or later
 # A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt.
 
-"""Construction of the view objects describing each detected subcluster.
+""" Construction of the view objects describing each detected subcluster
 
-Predictions are a plain derivation of the rule detection results and the ruleset
-detection ran with, so they aren't serialised with the results and are instead
-rebuilt whenever those results are reconstructed. Every compound and signature
-lookup happens here, so the results themselves never have to reach back into the
-packaged details files.
+    Predictions are a plain derivation of the rule detection results and the
+    ruleset detection ran with, so they aren't serialised with the results and
+    are instead rebuilt whenever those results are reconstructed. Every compound
+    and signature lookup happens here, so the results themselves never have to
+    reach back into the packaged details files.
 """
 from collections import defaultdict
 from dataclasses import dataclass
@@ -24,7 +24,16 @@ from .signatures import get_signatures
 
 @dataclass(frozen=True)
 class CDSDomainHit:
-    """A single signature match found in a specific CDS."""
+    """ A single signature match found within a specific CDS
+
+        Attributes:
+            domain_name: the name of the matching signature
+            domain_description: a description of the signature, if it has one
+            domain_accession: the accession of the signature, if it has one
+            cds_name: the name of the CDS the match was found in
+            evalue: the E-value of the match
+            bitscore: the bitscore of the match
+    """
     domain_name: str
     domain_description: Optional[str]
     domain_accession: Optional[str]
@@ -34,14 +43,14 @@ class CDSDomainHit:
 
 
 class SubclusterPrediction:
-    """A single predicted subcluster, used as a view object for HTML rendering.
+    """ A single predicted subcluster, used as a view object for HTML rendering
 
-    Attributes:
-        rule: The detection rule whose conditions were met
-        location: location of the protocluster that produced this prediction,
-            i.e. the matching core along with any neighbourhood the rule defines
-        compound: the compound associated with the detection rule
-        domain_hits: a flat list of every domain hit, each paired with its CDS name
+        Attributes:
+            rule: the detection rule whose conditions were met
+            location: the location of the protocluster that produced this prediction,
+                      i.e. the matching core along with any neighbourhood the rule defines
+            compound: the compound associated with the detection rule
+            domain_hits: a flat list of every domain hit, each paired with its CDS name
     """
 
     def __init__(
@@ -59,11 +68,12 @@ class SubclusterPrediction:
 
     @property
     def rule_name(self) -> str:
-        """Name of the matching detection rule."""
+        """ The name of the matching detection rule """
         return self.rule.name
 
     @property
     def conditions_str(self) -> str:
+        """ The conditions of the matching rule, without the outermost brackets """
         text = str(self.rule.conditions)
         if text.startswith("(") and text.endswith(")"):
             return text[1:-1]
@@ -71,6 +81,9 @@ class SubclusterPrediction:
 
     @property
     def domain_hits_by_cds(self) -> dict[str, list[CDSDomainHit]]:
+        """ The domain hits of the subcluster, grouped by the name of the CDS
+            they were found in
+        """
         hits_by_cds: dict[str, list[CDSDomainHit]] = defaultdict(list)
         for hit in self.domain_hits:
             hits_by_cds[hit.cds_name].append(hit)
@@ -78,6 +91,9 @@ class SubclusterPrediction:
 
     @property
     def domain_hits_by_domain(self) -> dict[str, list[CDSDomainHit]]:
+        """ The domain hits of the subcluster, grouped by the name of the
+            matching signature
+        """
         hits_by_domain: dict[str, list[CDSDomainHit]] = defaultdict(list)
         for hit in self.domain_hits:
             hits_by_domain[hit.domain_name].append(hit)
@@ -92,9 +108,17 @@ class SubclusterPrediction:
 
 
 def _build_domain_hits(rule_name: str, cds_results: list[CDSResults]) -> list[CDSDomainHit]:
-    """The domain hits that fired the given rule, flattened across the given CDS results.
+    """ Builds the domain hits that fired the given rule, flattened across the
+        given CDS results
 
-    Where a domain matched a CDS more than once, only the strongest hit is kept.
+        Where a domain matched a CDS more than once, only the strongest hit is kept.
+
+        Arguments:
+            rule_name: the name of the rule the hits must have contributed to
+            cds_results: the CDS results to gather the hits from
+
+        Returns:
+            a list of domain hits
     """
     hits: list[CDSDomainHit] = []
     for cds_result in cds_results:
@@ -119,15 +143,15 @@ def _build_domain_hits(rule_name: str, cds_results: list[CDSResults]) -> list[CD
 
 def build_predictions(rule_results: RuleDetectionResults, strictness: str,
                       ) -> list[SubclusterPrediction]:
-    """Build the view objects for each detected subcluster.
+    """ Builds the view objects for each detected subcluster
 
-    Arguments:
-        rule_results: the detection results to build the predictions from
-        strictness: the strictness level detection was run at, which determines
-            the ruleset the matching rules are taken from
+        Arguments:
+            rule_results: the detection results to build the predictions from
+            strictness: the strictness level detection was run at, which determines
+                        the ruleset the matching rules are taken from
 
-    Returns:
-        a list of predictions, one per detected subcluster
+        Returns:
+            a list of predictions, one per detected subcluster
     """
     ruleset = get_ruleset(strictness)
     predictions: list[SubclusterPrediction] = []
