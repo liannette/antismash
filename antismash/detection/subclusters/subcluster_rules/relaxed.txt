@@ -1,6 +1,7 @@
 # Contains rules for subclusters defined by their core/minimal functional parts,
 # capturing the subcluster type without requiring every tailoring component
 
+# Cutoffs and neighbourhoods are given in kilobases
 
 # this rule is missing a gene (E5), I probably need to create a hmm profile
 RULE SCG_0001
