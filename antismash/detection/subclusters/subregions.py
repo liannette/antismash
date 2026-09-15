@@ -65,24 +65,31 @@ def build_subregions(record: Record, areas: Sequence[CDSCollection], *, tool: st
     if not areas:
         return []
 
-    external: list[Location] = []
-    if mode in (SubRegionMode.EXTEND, SubRegionMode.CLIP):
-        # for "extend" and "clip", we want to only consider subclusters that
-        # have an overlap with some other external area
-        external = [location for location, _
-                    in record.get_potential_regions(gather_foreign_areas(record))]
-        areas = [area for area in areas
-                 if any(area.overlaps_with(location) for location in external)]
-        if not areas:
-            return []
-
     subregions = [
         SubRegion(location, tool=tool, label=LABEL)
         for location, _ in record.get_potential_regions(areas)
     ]
 
-    # "create" uses every subcluster and "extend" every surviving one, both in full
-    if mode in (SubRegionMode.CREATE, SubRegionMode.EXTEND):
+    # "create": all subcluster predictions are used in full for subregion formation
+    if mode == SubRegionMode.CREATE:
+        return subregions
+
+    # for "extend" and "clip", we want to only consider subclusters that
+    # have an overlap with some other external area
+    external = [location for location, _
+                in record.get_potential_regions(gather_foreign_areas(record))]
+
+    # "extend": only subclusters overlapping a foreign area are used for subregions
+    if mode == SubRegionMode.EXTEND:
+        filtered_areas = [area for area in areas
+                 if any(area.overlaps_with(location) for location in external)]
+        if not filtered_areas:
+            return []
+
+        subregions = [
+            SubRegion(location, tool=tool, label=LABEL)
+            for location, _ in record.get_potential_regions(filtered_areas)
+        ]
         return subregions
 
     # "clip": only the sections shared with an area from another module are kept,
