@@ -1,5 +1,6 @@
 3HCDH	3-hydroxyacyl-CoA dehydrogenase, C-terminal domain	22	rule_hmms/3HCDH.hmm	PF00725.28
 3HCDH_N	3-hydroxyacyl-CoA dehydrogenase, NAD binding domain	22	rule_hmms/3HCDH_N.hmm	PF02737.25
+4HBT_2	Thioesterase-like superfamily	25	rule_hmms/4HBT_2.hmm	PF13279.13
 ACPS	4'-phosphopantetheinyl transferase superfamily	25	rule_hmms/ACPS.hmm	PF01648.26
 ACP_syn_III_C	3-Oxoacyl-[acyl-carrier-protein (ACP)] synthase III C terminal	26	rule_hmms/ACP_syn_III_C.hmm	PF08541.17
 ADC	Acetoacetate decarboxylase (ADC)	29	rule_hmms/ADC.hmm	PF06314.17

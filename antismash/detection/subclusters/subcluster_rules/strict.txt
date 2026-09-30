@@ -131,7 +131,7 @@ RULE SCG0018
                and DegT_DnrJ_EryC1
                and dTDP_sugar_isom
                and cds(GFO_IDH_MocA and GFO_IDH_MocA_C3)
-    EXTENDERS cds(Hexose_dehydrat or NTP_transferase or DUF6365)
+    EXTENDERS cds(Hexose_dehydrat or DUF6365)
 
 RULE SCG0020
     CATEGORY Subcluster
@@ -142,7 +142,7 @@ RULE SCG0020
                and Epimerase
                and GDP_Man_Dehyd
                and cds(GFO_IDH_MocA and GFO_IDH_MocA_C3)
-    EXTENDERS cds(NTP_transferase or Hexose_dehydrat)
+    EXTENDERS Hexose_dehydrat
 
 RULE SCG0021
     CATEGORY Subcluster
@@ -266,7 +266,7 @@ RULE SCG0039
 
 RULE SCG0040
     CATEGORY Subcluster
-    DESCRIPTION 4'-O-carbamoyl-2'-deoxyrhamnose
+    DESCRIPTION 4-O-carbamoyl-2-deoxyrhamnose
     CUTOFF 15
     NEIGHBOURHOOD 0
     CONDITIONS GDP_Man_Dehyd

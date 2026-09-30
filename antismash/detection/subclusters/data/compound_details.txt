@@ -17,7 +17,7 @@ SCG0023	3-methyl-aspartate	CC(C(C(=O)O)N)C(=O)O	amino acid
 SCG0025	3,6-dimethylsalicylic acid	CC1=C(C(=C(C=C1)C)O)C(=O)O	aromatic carboxylic acid
 SCG0030	4-amino-4-deoxy-3-methyl-β-d-ribose	OC1C(O)C(C)(O)C(N)CO1	sugar
 SCG0031	3,5-Dihydroxyphenylglycine (Dhpg)	C1=C(C=C(C=C1O)O)C(C(=O)O)N	amino acid
-SCG0032	4-hydroxyphenylglycine (Hpg)   C1=CC(=CC=C1C(C(=O)O)N)O	amino acid
+SCG0032	4-hydroxyphenylglycine (Hpg)	C1=CC(=CC=C1C(C(=O)O)N)O	amino acid
 SCG0033	beta-hydroxytyrosine	C1=CC(=CC=C1C(C(C(=O)O)N)O)O	amino acid
 SCG0034	dehydrovancosamine	C[C@@H]1O{1}[C@@H](O)C[C@](C)(N)C1=O	sugar
 SCG0035	L-enduracididine	C1[C@H](NC(=N1)N)C[C@@H](C(=O)O)N	amino acid
