@@ -152,22 +152,23 @@ def regenerate_previous_results(results: dict[str, Any], record: Record,
     """
     if not results:
         return None
-    previous = SubclusterDetectionResults.from_json(results, record)
-    if previous is None:
-        return None
 
+    # these checks have to happen before the results are rebuilt, since rebuilding
+    # the predictions looks up each stored protocluster's rule in the current
+    # ruleset and would fail for any rule that has since been removed or renamed
     current_strictness = _get_strictness(options)
-    if previous.strictness != current_strictness:
+    previous_strictness = results.get("strictness")
+    if previous_strictness != current_strictness:
         logging.debug("Subcluster strictness changed from %r to %r; forcing re-detection.",
-                      previous.strictness, current_strictness)
+                      previous_strictness, current_strictness)
         return None
 
     current_rule_names = get_ruleset(current_strictness).get_rule_names()
-    if previous.rule_names != current_rule_names:
+    if set(results.get("rule_names", [])) != current_rule_names:
         logging.debug("Subcluster rules changed; forcing re-detection.")
         return None
 
-    return previous
+    return SubclusterDetectionResults.from_json(results, record)
 
 
 def run_on_record(record: Record, previous_results: Optional[SubclusterDetectionResults],
