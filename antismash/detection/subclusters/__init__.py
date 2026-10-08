@@ -140,35 +140,66 @@ def check_prereqs(options: ConfigType) -> list[str]:
     return failure_messages
 
 
-def _get_strictness(options: ConfigType) -> str:
-    """ Returns the subcluster detection strictness to use for the given options """
-    return options.subclusters_strictness
+def _discard_previous_results(reason: str, mode: SubRegionMode) -> None:
+    """ Discards previous results so that detection is rerun, provided that
+        doing so can't alter regions
+
+        Arguments:
+            reason: why the previous results can't be reused
+            mode: the current subregion mode
+
+        Raises:
+            RuntimeError: if rerunning detection in the given mode could alter regions
+    """
+    # clipped subregions never extend or create regions, so re-detection is safe
+    if mode == SubRegionMode.CLIP:
+        logging.debug("Discarding previous subcluster results: %s", reason)
+        return
+    raise RuntimeError(
+        f"{reason}, and in region mode {str(mode)!r} rerunning detection can alter "
+        "regions; previous results are incompatible, rerun from the original sequence file")
 
 
 def regenerate_previous_results(results: dict[str, Any], record: Record,
                                 options: ConfigType) -> Optional[SubclusterDetectionResults]:
-    """ Regenerates previous results, discarding them if either the strictness
-        level or the rules themselves have changed since the previous run
+    """ Regenerates previous results, discarding them if the subregion mode,
+        strictness level, rules or result format have changed since the previous run
+
+        Since regions are rebuilt from scratch when reusing results, any change
+        that could alter region boundaries would leave other modules' results,
+        which are stored by region number, attached to the wrong regions. Such
+        changes are treated as incompatible with the previous results.
     """
     if not results:
         return None
 
-    # these checks have to happen before the results are rebuilt, since rebuilding
-    # the predictions looks up each stored protocluster's rule in the current
-    # ruleset and would fail for any rule that has since been removed or renamed
-    current_strictness = _get_strictness(options)
-    previous_strictness = results.get("strictness")
-    if previous_strictness != current_strictness:
-        logging.debug("Subcluster strictness changed from %r to %r; forcing re-detection.",
-                      previous_strictness, current_strictness)
+    # switching mode in either direction alters regions formation, so 
+    # results can not be reused
+    current_mode = SubRegionMode[options.subclusters_subregion_mode.upper()]
+    previous_mode = results.get("subregion_mode")
+    if previous_mode != current_mode:
+        raise RuntimeError(
+            f"Subcluster region mode changed from {previous_mode!r} to {str(current_mode)!r}, "
+            "previous results are incompatible; rerun with the previous region mode "
+            "or from the original sequence file")
+
+    if results.get("schema_version") != SubclusterDetectionResults.schema_version:
+        _discard_previous_results("Subcluster results format changed", current_mode)
         return None
 
+    current_strictness = options.subclusters_strictness
     current_rule_names = get_ruleset(current_strictness).get_rule_names()
-    if set(results.get("rule_names", [])) != current_rule_names:
-        logging.debug("Subcluster rules changed; forcing re-detection.")
+    strictness_changed = results["strictness"] != current_strictness
+    rules_changed = set(results["rule_names"]) != current_rule_names
+    if strictness_changed or rules_changed:
+        _discard_previous_results("Subcluster strictness or rules changed", current_mode)
         return None
 
-    return SubclusterDetectionResults.from_json(results, record)
+    regenerated = SubclusterDetectionResults.from_json(results, record)
+    if regenerated is None:
+        _discard_previous_results("Subcluster rule detection results format changed",
+                                  current_mode)
+    return regenerated
 
 
 def run_on_record(record: Record, previous_results: Optional[SubclusterDetectionResults],
@@ -177,7 +208,7 @@ def run_on_record(record: Record, previous_results: Optional[SubclusterDetection
     if previous_results:
         return previous_results
 
-    current_strictness = _get_strictness(options)
+    current_strictness = options.subclusters_strictness
     ruleset = get_ruleset(current_strictness)
     rule_results = detect_protoclusters_and_signatures(record, ruleset)
     # The shared rule-based detection pipeline hardcodes the protocluster
