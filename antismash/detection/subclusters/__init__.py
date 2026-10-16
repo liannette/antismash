@@ -140,65 +140,57 @@ def check_prereqs(options: ConfigType) -> list[str]:
     return failure_messages
 
 
-def _discard_previous_results(reason: str, mode: SubRegionMode) -> None:
-    """ Discards previous results so that detection is rerun, provided that
-        doing so can't alter regions
-
-        Arguments:
-            reason: why the previous results can't be reused
-            mode: the current subregion mode
-
-        Raises:
-            RuntimeError: if rerunning detection in the given mode could alter regions
-    """
-    # clipped subregions never extend or create regions, so re-detection is safe
-    if mode == SubRegionMode.CLIP:
-        logging.debug("Discarding previous subcluster results: %s", reason)
-        return
-    raise RuntimeError(
-        f"{reason}, and in region mode {str(mode)!r} rerunning detection can alter "
-        "regions; previous results are incompatible, rerun from the original sequence file")
-
-
 def regenerate_previous_results(results: dict[str, Any], record: Record,
                                 options: ConfigType) -> Optional[SubclusterDetectionResults]:
-    """ Regenerates previous results, discarding them if the subregion mode,
-        strictness level, rules or result format have changed since the previous run
+    """ Regenerates previous results, if they are still compatible with the
+        current options
 
         Since regions are rebuilt from scratch when reusing results, any change
-        that could alter region boundaries would leave other modules' results,
-        which are stored by region number, attached to the wrong regions. Such
-        changes are treated as incompatible with the previous results.
+        that could alter region formation would leave other modules' results
+        incompatible.
+
+        Arguments:
+            results: the JSON representation of the previous results
+            record: the record the results were generated for
+            options: the current antiSMASH config
+
+        Returns:
+            the regenerated results, or None if there are no previous results
+            or they were discarded so that detection is rerun
+
+        Raises:
+            RuntimeError: if the previous results are incompatible and rerunning
+                          detection could alter regions
     """
     if not results:
         return None
 
-    # switching mode in either direction alters regions formation, so 
-    # results can not be reused
     current_mode = SubRegionMode[options.subclusters_subregion_mode.upper()]
-    previous_mode = results.get("subregion_mode")
-    if previous_mode != current_mode:
-        raise RuntimeError(
-            f"Subcluster region mode changed from {previous_mode!r} to {str(current_mode)!r}, "
-            "previous results are incompatible; rerun with the previous region mode "
-            "or from the original sequence file")
+    current_rule_names = get_ruleset(options.subclusters_strictness).get_rule_names()
 
-    if results.get("schema_version") != SubclusterDetectionResults.schema_version:
-        _discard_previous_results("Subcluster results format changed", current_mode)
-        return None
+    mode_changed = results.get("subregion_mode") != current_mode
+    rules_changed = set(results.get("rule_names", [])) != current_rule_names
 
-    current_strictness = options.subclusters_strictness
-    current_rule_names = get_ruleset(current_strictness).get_rule_names()
-    strictness_changed = results["strictness"] != current_strictness
-    rules_changed = set(results["rule_names"]) != current_rule_names
-    if strictness_changed or rules_changed:
-        _discard_previous_results("Subcluster strictness or rules changed", current_mode)
-        return None
+    # full antismash rerun necessary if the mode changes
+    if mode_changed:
+        raise RuntimeError("Subcluster mode changed, no results can be reused")
 
-    regenerated = SubclusterDetectionResults.from_json(results, record)
+    # rule set must be unchanged to regenerate results
+    if rules_changed:
+        regenerated = None
+    else:
+        # from_json returns None if the results format has changed
+        regenerated = SubclusterDetectionResults.from_json(results, record)
+
+    # only in CLIP mode it's safe to rerun subcluster module without rerunning everything
     if regenerated is None:
-        _discard_previous_results("Subcluster rule detection results format changed",
-                                  current_mode)
+        if current_mode == SubRegionMode.CLIP:
+            logging.debug("Subcluster rules or results format changed, "
+                          "discarding previous subcluster results")
+        else:
+            raise RuntimeError(
+                "Subcluster rules or results format changed, no results can be reused")
+
     return regenerated
 
 
