@@ -226,12 +226,51 @@ class TestCrossOrigin(unittest.TestCase):
         assert subregions[0].crosses_origin()
         assert get_coordinates(subregions) == [(950, 50)]
 
-    def test_clip(self):
-        # the foreign area also crosses the origin, but ends earlier
+    def test_clip_both_crossing(self):
+        # the foreign area ends before the subcluster
         areas = [create_protocluster(950, 50)]
         foreign = [create_protocluster(900, 20)]
         subregions = build_for_mode(SubRegionMode.CLIP, areas, foreign=foreign, circular=True)
         assert len(subregions) == 1
-        clipped = subregions[0]
-        assert clipped.crosses_origin()
+        assert subregions[0].crosses_origin()
         assert get_coordinates(subregions) == [(950, 20)]
+
+        # the foreign area starts after the subcluster
+        areas = [create_protocluster(950, 50)]
+        foreign = [create_protocluster(980, 100)]
+        subregions = build_for_mode(SubRegionMode.CLIP, areas, foreign=foreign, circular=True)
+        assert len(subregions) == 1
+        assert subregions[0].crosses_origin()
+        assert get_coordinates(subregions) == [(980, 50)]
+
+    def test_clip_subcluster_crossing(self):
+        # only the part of the subcluster after the origin overlaps the foreign area
+        areas = [create_protocluster(950, 50)]
+        foreign = [create_protocluster(10, 100)]
+        subregions = build_for_mode(SubRegionMode.CLIP, areas, foreign=foreign, circular=True)
+        assert len(subregions) == 1
+        assert not subregions[0].crosses_origin()
+        assert get_coordinates(subregions) == [(10, 50)]
+
+        # only the part of the subcluster before the origin overlaps the foreign area
+        foreign = [create_protocluster(900, 970)]
+        subregions = build_for_mode(SubRegionMode.CLIP, areas, foreign=foreign, circular=True)
+        assert len(subregions) == 1
+        assert not subregions[0].crosses_origin()
+        assert get_coordinates(subregions) == [(950, 970)]
+
+    def test_clip_foreign_crossing(self):
+        # the subcluster starts after the origin, inside the end of the foreign area
+        foreign = [create_protocluster(900, 50)]
+        areas = [create_protocluster(10, 100)]
+        subregions = build_for_mode(SubRegionMode.CLIP, areas, foreign=foreign, circular=True)
+        assert len(subregions) == 1
+        assert not subregions[0].crosses_origin()
+        assert get_coordinates(subregions) == [(10, 50)]
+
+        # the subcluster ends before the origin, entirely within the foreign area
+        areas = [create_protocluster(920, 990)]
+        subregions = build_for_mode(SubRegionMode.CLIP, areas, foreign=foreign, circular=True)
+        assert len(subregions) == 1
+        assert not subregions[0].crosses_origin()
+        assert get_coordinates(subregions) == [(920, 990)]

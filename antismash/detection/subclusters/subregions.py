@@ -104,11 +104,15 @@ def build_subregions(record: Record, areas: Sequence[CDSCollection], *, tool: st
     # so the truncated results are locations rather than protoclusters
 
     def clip_location(location: Location, limit: Location) -> Location | None:
-        parts = list(location.parts)
-        parts[0] = FeatureLocation(max(parts[0].start, limit.parts[0].start), parts[0].end, location.strand)
-        parts[-1] = FeatureLocation(parts[-1].start, min(parts[-1].end, limit.parts[-1].end), location.strand)
+        # intersect each part separately, as either location may cross the origin
+        parts = []
+        for part in location.parts:
+            for limit_part in limit.parts:
+                start = max(part.start, limit_part.start)
+                end = min(part.end, limit_part.end)
+                if end - start > 1:
+                    parts.append(FeatureLocation(start, end, location.strand))
 
-        parts = [p for p in parts if len(p) > 1]
         if not parts:
             return None
         if len(parts) > 1:
