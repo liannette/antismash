@@ -8,14 +8,18 @@ import glob
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import antismash
+from antismash.common import path
 from antismash.common.secmet import Record
 from antismash.common.secmet.locations import FeatureLocation
 from antismash.common.secmet.test.helpers import DummyCDS, DummyRecord
 from antismash.common.test.helpers import run_and_regenerate_results_for_module
 from antismash.config import build_config, destroy_config, update_config
 from antismash.detection import subclusters
+from antismash.detection.subclusters import compounds, ruleset, signatures
+from antismash.detection.subclusters.compounds import CompoundInfo
 
 
 DATA = {
@@ -171,10 +175,39 @@ DHPG_SPAN = FeatureLocation(17866, 45294, 1)  # overlaps with T3PKS_SPAN and HPG
 HPG_SPAN = FeatureLocation(43933, 80710, 1)  # overlaps with DHPG_SPAN
 HPG_2_SPAN = FeatureLocation(343933, 380710, 1)  # overlaps with nothing
 
+# fixed rules, signatures and compounds, so that changes to the real data files
+# don't affect the tests
+TEST_RULES = path.get_full_path(__file__, "data", "rules.txt")
+TEST_DETAILS = path.get_full_path(__file__, "data", "hmmdetails.txt")
+TEST_COMPOUNDS = {
+    "TestDhpg": CompoundInfo(name="3,5-Dihydroxyphenylglycine (Dhpg)", smiles=None,
+                             classification=["amino acid"]),
+    "TestHpg": CompoundInfo(name="4-Hydroxyphenylglycine (Hpg)", smiles=None,
+                            classification=["amino acid"]),
+}
+
 
 class TestSubclusters(unittest.TestCase):
 
     def setUp(self):
+        # the aggregate built from the test signatures must not replace the real one
+        temp_dir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+        self.addCleanup(temp_dir.cleanup)
+        aggregate = os.path.join(temp_dir.name, "subcluster_seeds.hmm")
+        test_signatures = {signature.name: signature
+                           for signature in signatures._read_signatures(TEST_DETAILS)}
+        patches = [
+            patch.object(subclusters, "DETAILS_FILE", TEST_DETAILS),
+            patch.object(subclusters, "AGGREGATE_HMM_FILE", aggregate),
+            patch.object(ruleset, "AGGREGATE_HMM_FILE", aggregate),
+            patch.dict(signatures._SIGNATURE_CACHE, test_signatures, clear=True),
+            patch.object(ruleset, "_rule_files_for_strictness", return_value=[TEST_RULES]),
+            patch.dict(ruleset._CACHE, clear=True),
+            patch.dict(compounds._COMPOUND_CACHE, TEST_COMPOUNDS, clear=True),
+        ]
+        for patcher in patches:
+            patcher.start()
+            self.addCleanup(patcher.stop)
         subclusters.prepare_data()
 
     def tearDown(self):
@@ -225,38 +258,36 @@ class TestSubclusters(unittest.TestCase):
         assert len(results.rule_results.protoclusters) == 3
         protoclusters = results.rule_results.protoclusters
         assert [(proto.product, proto.location) for proto in protoclusters] == [
-            ("SCG0041", DHPG_SPAN),
-            ("SCG0042", HPG_SPAN),
-            ("SCG0042", HPG_2_SPAN),
+            ("TestDhpg", DHPG_SPAN),
+            ("TestHpg", HPG_SPAN),
+            ("TestHpg", HPG_2_SPAN),
         ]
 
         assert len(results.predictions) == 3
         dhpg, hpg, hpg_2 = results.predictions
 
-        assert dhpg.rule.name == "SCG0041"
+        assert dhpg.rule.name == "TestDhpg"
         assert dhpg.compound.name == "3,5-Dihydroxyphenylglycine (Dhpg)"
         assert dhpg.location == DHPG_SPAN
-        assert len(dhpg.domain_hits) == 6
+        assert len(dhpg.domain_hits) == 5
         assert sorted((hit.cds_name, hit.domain_name) for hit in dhpg.domain_hits) == [
             ("AJAP_31990", "ECH_1"),
             ("AJAP_31995", "ECH_1"),
             ("AJAP_32000", "ECH_1"),
             ("AJAP_32005", "Chal_sti_synt_C"),
-            ("AJAP_32005", "Chal_sti_synt_N"),
             ("AJAP_32060", "Aminotran_1_2"),
         ]
         aminotransferase = dhpg.domain_hits_by_cds["AJAP_32060"][0]
-        assert aminotransferase.domain_accession == "PF00155.24"
+        assert aminotransferase.domain_accession.startswith("PF00155.")
         assert aminotransferase.domain_description == "Aminotransferase class I and II"
 
-        assert hpg.rule.name == "SCG0042"
+        assert hpg.rule.name == "TestHpg"
         assert hpg.compound.name == "4-Hydroxyphenylglycine (Hpg)"
         assert hpg.location == HPG_SPAN
-        assert len(hpg.domain_hits) == 6
+        assert len(hpg.domain_hits) == 5
         assert sorted((hit.cds_name, hit.domain_name) for hit in hpg.domain_hits) == [
             ("AJAP_32035", "FMN_dh"),
             ("AJAP_32040", "Glyoxalase"),
-            ("AJAP_32040", "Glyoxalase_4"),
             ("AJAP_32060", "Aminotran_1_2"),
             ("AJAP_32155", "PDH_C"),
             ("AJAP_32155", "PDH_N"),
