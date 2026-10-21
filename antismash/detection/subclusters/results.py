@@ -19,7 +19,7 @@ class SubclusterDetectionResults(DetectionResults):
 
     schema_version = 1  # increment when the JSON format changes
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
             self,
             record_id: str,
             rule_results: RuleDetectionResults,
@@ -76,7 +76,7 @@ class SubclusterDetectionResults(DetectionResults):
         }
 
     @classmethod
-    def from_json(cls, data: dict[str, Any], record: Record) -> Optional[Self]:
+    def from_json(cls, json: dict[str, Any], record: Record) -> Optional[Self]:
         """ Regenerates the results from a JSON representation
 
             The results will be discarded if either the schema version of the
@@ -84,21 +84,21 @@ class SubclusterDetectionResults(DetectionResults):
             no longer matches.
 
             Arguments:
-                data: the JSON representation to rebuild from
+                json: the JSON representation to rebuild from
                 record: the record the results were generated for
 
             Returns:
                 the rebuilt instance, or None if the previous results are no
                 longer valid
         """
-        if data.get("schema_version") != cls.schema_version:
+        if json.get("schema_version") != cls.schema_version:
             logging.debug(
                 "Discarding subcluster results: schema version %s != %s",
-                data.get("schema_version"), cls.schema_version,
+                json.get("schema_version"), cls.schema_version,
             )
             return None
 
-        rule_results = RuleDetectionResults.from_json(data["rule_results"], record)
+        rule_results = RuleDetectionResults.from_json(json["rule_results"], record)
         if rule_results is None:
             logging.debug("Discarding subcluster results: rule detection result schema changed")
             return None
@@ -106,14 +106,14 @@ class SubclusterDetectionResults(DetectionResults):
         # neither the predictions nor the subregions are stored, as they're
         # derived from the rule results and, for the subregions, the areas found
         # by the other detection modules, so both are rebuilt here
-        subregion_mode = SubRegionMode(data["subregion_mode"])
+        subregion_mode = SubRegionMode(json["subregion_mode"])
         return cls(
-            record_id=data["record_id"],
+            record_id=json["record_id"],
             rule_results=rule_results,
-            rule_names=set(data["rule_names"]),
-            strictness=data["strictness"],
+            rule_names=set(json["rule_names"]),
+            strictness=json["strictness"],
             subregion_mode=subregion_mode,
-            predictions=build_predictions(rule_results, data["strictness"]),
+            predictions=build_predictions(rule_results, json["strictness"]),
             subregions=build_subregions(record, rule_results.protoclusters,
                                         tool=rule_results.tool, mode=subregion_mode),
         )

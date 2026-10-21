@@ -65,8 +65,8 @@ def _read_compounds(detail_file: str) -> dict[str, CompoundInfo]:
             a dictionary mapping rule name to the relevant compound
     """
     compounds: dict[str, CompoundInfo] = {}
-    with open(detail_file, encoding="utf-8") as f:
-        for line in f:
+    with open(detail_file, encoding="utf-8") as handle:
+        for line in handle:
             if line.startswith("#") or not line.strip():
                 continue
             parts = line.rstrip("\n").split("\t")
