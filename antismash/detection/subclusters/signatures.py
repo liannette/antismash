@@ -3,6 +3,8 @@
 
 """ HMM signatures for the subcluster detection module """
 
+from typing import Optional
+
 from antismash.common import path
 from antismash.common.signature import HmmSignature
 
@@ -16,11 +18,11 @@ _SIGNATURE_CACHE: dict[str, "SubclusterHmmSignature"] = {}
 
 
 class SubclusterHmmSignature(HmmSignature):
-    """ An HMM signature, extended with the accession of the source profile """
+    """ An HMM signature, extended with the accession of the source profile, if it has one """
 
     def __init__(self, name: str, description: str, cutoff: int,
                  hmm_path: str, seed_count: int = 0, *,
-                 accession: str) -> None:
+                 accession: Optional[str] = None) -> None:
         super().__init__(name, description, cutoff, hmm_path, seed_count)
         self.accession = accession
 
@@ -53,8 +55,8 @@ def _read_signatures(detail_file: str) -> list[SubclusterHmmSignature]:
 
         The file is expected to be tab separated, each row being a single HMM
         reference with the columns: name, description, minimum score cutoff,
-        HMM path, and accession. Paths in the file are assumed to be relative to
-        the file itself. Lines starting with '#' are treated as comments and
+        HMM path, and an optional accession. Paths in the file are assumed to be
+        relative to the file itself. Lines starting with '#' are treated as comments and
         ignored.
 
         Arguments:
@@ -69,11 +71,13 @@ def _read_signatures(detail_file: str) -> list[SubclusterHmmSignature]:
         for line in data.read().split("\n"):
             if line.startswith("#") or not line.strip():
                 continue
-            try:
-                name, desc, cutoff, filename, accession = line.split("\t")
-            except ValueError:
+            parts = line.split("\t")
+            if len(parts) not in (4, 5):
                 bad_lines.append(line)
                 continue
+            name, desc, cutoff, filename = parts[:4]
+            # an empty accession column is treated the same as a missing one
+            accession = parts[4] if len(parts) == 5 and parts[4] else None
             signatures.append(SubclusterHmmSignature(
                 name,
                 desc,
