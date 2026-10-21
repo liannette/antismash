@@ -55,43 +55,34 @@ class TestRegenerate(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "mode changed"):
             self.regenerate(results, build_options())
 
-    def test_schema_changed_clip(self):
-        results = build_results()
+    def test_schema_changed(self):
+        results = build_results(mode="clip")
         results["schema_version"] = -1
-        assert self.regenerate(results, build_options()) is None
-
-    def test_schema_changed_region_altering(self):
+        assert self.regenerate(results, build_options(mode="clip")) is None
         for mode in ["extend", "create"]:
             results = build_results(mode=mode)
             results["schema_version"] = -1
             with self.assertRaisesRegex(RuntimeError, "results format changed"):
                 self.regenerate(results, build_options(mode=mode))
 
-    def test_rule_results_schema_changed_clip(self):
+    def test_rule_results_schema_changed(self):
         with patch.object(SubclusterDetectionResults, "from_json", return_value=None):
-            assert self.regenerate(build_results(), build_options()) is None
-
-    def test_rule_results_schema_changed_region_altering(self):
-        with patch.object(SubclusterDetectionResults, "from_json", return_value=None):
+            assert self.regenerate(build_results(mode="clip"), build_options(mode="clip")) is None
             for mode in ["extend", "create"]:
                 with self.assertRaisesRegex(RuntimeError, "rules or results format changed"):
                     self.regenerate(build_results(mode=mode), build_options(mode=mode))
 
-    def test_strictness_changed_clip(self):
-        results = build_results(strictness="strict")
-        assert self.regenerate(results, build_options(strictness="relaxed")) is None
-
-    def test_strictness_changed_region_altering(self):
+    def test_strictness_changed(self):
+        results = build_results(strictness="strict", mode="clip")
+        assert self.regenerate(results, build_options(strictness="relaxed", mode="clip")) is None
         for mode in ["extend", "create"]:
             results = build_results(strictness="strict", mode=mode)
             with self.assertRaisesRegex(RuntimeError, "rules or results format changed"):
                 self.regenerate(results, build_options(strictness="relaxed", mode=mode))
 
-    def test_rules_changed_clip(self):
-        results = build_results(rule_names=["not-a-rule"])
-        assert self.regenerate(results, build_options()) is None
-
-    def test_rules_changed_region_altering(self):
+    def test_rules_changed(self):
+        results = build_results(mode="clip", rule_names=["not-a-rule"])
+        assert self.regenerate(results, build_options(mode="clip")) is None
         for mode in ["extend", "create"]:
             results = build_results(mode=mode, rule_names=["not-a-rule"])
             with self.assertRaisesRegex(RuntimeError, "rules or results format changed"):
