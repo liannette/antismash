@@ -20,7 +20,7 @@ from .results import SubclusterDetectionResults
 from .ruleset import get_ruleset, _STRICTNESS_LEVELS
 from .signatures import AGGREGATE_HMM_FILE, DETAILS_FILE, get_signatures
 from .subregions import SubRegionMode, build_subregions
-from .html_output import generate_html, will_handle, generate_javascript_data
+from .html_output import generate_html, will_handle, generate_javascript_data  # noqa: F401
 
 NAME = "subclusters"
 SHORT_DESCRIPTION = "Detects subclusters for specific chemical moieties, e.g. precursor molecules."
@@ -100,7 +100,7 @@ def prepare_data(logging_only: bool = False) -> list[str]:
             a list of error messages (only if logging_only is True)
     """
     failure_messages: list[str] = []
-    
+
     # check that the signature details are readable and well-formatted
     try:
         signatures = get_signatures()

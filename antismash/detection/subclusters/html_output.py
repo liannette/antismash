@@ -24,10 +24,12 @@ def generate_html(region_layer: RegionLayer, results: SubclusterDetectionResults
     """ Generates the HTML detail sections for the subclusters within a region """
     predictions = results.get_predictions_for_region(region_layer.region_feature)
 
-    tooltip = Markup("Subclusters are sets of genes responsible for producing a specific chemical moiety.")
+    tooltip = Markup("Subclusters are sets of genes responsible for producing"
+                     " a specific chemical moiety.")
 
     template = FileTemplate(path.get_full_path(__file__, "templates", "details.html"))
-    section = template.render(predictions=predictions, tooltip=tooltip, anchor=region_layer.anchor_id)
+    section = template.render(predictions=predictions, tooltip=tooltip,
+                              anchor=region_layer.anchor_id)
 
     html = HTMLSections(name="subclusters")
     html.add_detail_section("Subclusters", section, class_name="subclusters")
@@ -67,7 +69,7 @@ def generate_javascript_data(record: Record, region: Region,
             cds_results.append({
                 "cds": cds_name,
                 "domains": domains,
-                "tooltip" : template.render(domains=domains, cds_name=cds_name),
+                "tooltip": template.render(domains=domains, cds_name=cds_name),
             })
 
         data.append({

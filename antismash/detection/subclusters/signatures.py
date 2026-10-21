@@ -75,14 +75,15 @@ def _read_signatures(detail_file: str) -> list[SubclusterHmmSignature]:
                 bad_lines.append(line)
                 continue
             signatures.append(SubclusterHmmSignature(
-                name, 
-                desc, 
-                int(cutoff), 
+                name,
+                desc,
+                int(cutoff),
                 path.get_full_path(detail_file, filename),
                 accession=accession)
             )
 
     if bad_lines:
-        raise ValueError("Invalid lines in HMM detail file (first 10):\n%s" % "\n".join(bad_lines[:10]))
+        raise ValueError("Invalid lines in HMM detail file (first 10):\n%s"
+                         % "\n".join(bad_lines[:10]))
 
     return signatures

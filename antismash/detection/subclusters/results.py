@@ -97,12 +97,12 @@ class SubclusterDetectionResults(DetectionResults):
                 data.get("schema_version"), cls.schema_version,
             )
             return None
-        
+
         rule_results = RuleDetectionResults.from_json(data["rule_results"], record)
         if rule_results is None:
             logging.debug("Discarding subcluster results: rule detection result schema changed")
             return None
-        
+
         # neither the predictions nor the subregions are stored, as they're
         # derived from the rule results and, for the subregions, the areas found
         # by the other detection modules, so both are rebuilt here

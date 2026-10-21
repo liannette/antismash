@@ -63,12 +63,12 @@ DATA = {
             "TAVVNSLFGDGSAALALVSGDGRVPGPRVLKFASYIITDAVDAMRYDWDRDQDRFSFFLDPQIPY"
             "VVGAHAEIVIDRLLSGTGLRRSDIGHWLVHSGGKKVIDAVVVNLGLSRHDVRHTTGVLRDYGNLS"
             "SGSFLFSYERLADEDVARPGDYGVLMTMGPGSTIEMALIQW"
-        )        
+        )
     },
-    # dhpg and hpg 
+    # dhpg and hpg
     "AJAP_32060": {
         "location": [43933, 45294],
-        "translation" : (
+        "translation": (
             "MDNSRKRGVHRLFLTLRRTVEILVFMDSNGLSTHLNVETLHGSLTDPAISSMNLLNELIDEYPVA"
             "ISMAAGRPYEEFFDIRLIHTYLDAYCDHLRRDRKMDEAVVTRTLFQYGTTKGVIADLIAKNLAED"
             "ENIDAAPESVVVTVGAQEAMFLVLRTLRAGERDVLLAPAPTYVGLTGAALLTDTPVWPVRSNENG"
@@ -93,7 +93,7 @@ DATA = {
     # hpg
     "AJAP_32040": {
         "location": [58913, 59965],
-        "translation" :(
+        "translation": (
             "MSSHENTQNFEIDYVEMYVANLEVAASGWLDKYDFSVTATDRSADHRSVTLRHSAIALVLTEPLS"
             "DRHPGATYLQTHGEGVADIALRTTDVAAAFEAAVKAGAKPLREPEKGVDSVLTATVSGFGDVVHT"
             "LIQSDVAEEAPRGKGGVELGVIDHFAVCLNAGDLGPTVAFYERALGFKQIFEEHIVVGAQAMNST"
@@ -116,7 +116,7 @@ DATA = {
     # hpg_2 (far away)
     "AJAP_32060_2": {
         "location": [343933, 345294],
-        "translation" : (
+        "translation": (
             "MDNSRKRGVHRLFLTLRRTVEILVFMDSNGLSTHLNVETLHGSLTDPAISSMNLLNELIDEYPVA"
             "ISMAAGRPYEEFFDIRLIHTYLDAYCDHLRRDRKMDEAVVTRTLFQYGTTKGVIADLIAKNLAED"
             "ENIDAAPESVVVTVGAQEAMFLVLRTLRAGERDVLLAPAPTYVGLTGAALLTDTPVWPVRSNENG"
@@ -141,7 +141,7 @@ DATA = {
     # hpg_2 (far away)
     "AJAP_32040_2": {
         "location": [358913, 359965],
-        "translation" :(
+        "translation": (
             "MSSHENTQNFEIDYVEMYVANLEVAASGWLDKYDFSVTATDRSADHRSVTLRHSAIALVLTEPLS"
             "DRHPGATYLQTHGEGVADIALRTTDVAAAFEAAVKAGAKPLREPEKGVDSVLTATVSGFGDVVHT"
             "LIQSDVAEEAPRGKGGVELGVIDHFAVCLNAGDLGPTVAFYERALGFKQIFEEHIVVGAQAMNST"
@@ -168,7 +168,7 @@ T3PKS_SPAN = FeatureLocation(521, 41621, 1)
 
 # the subclusters detected in this record
 DHPG_SPAN = FeatureLocation(17866, 45294, 1)  # overlaps with T3PKS_SPAN and HPG_SPAN
-HPG_SPAN = FeatureLocation(43933, 80710, 1)  # overlaps with DHPG_SPAN 
+HPG_SPAN = FeatureLocation(43933, 80710, 1)  # overlaps with DHPG_SPAN
 HPG_2_SPAN = FeatureLocation(343933, 380710, 1)  # overlaps with nothing
 
 
@@ -219,11 +219,12 @@ class TestSubclusters(unittest.TestCase):
             results = run_and_regenerate_results_for_module(temp.name, subclusters, options,
                                                             callback=capture_regions)
         return results, regions
-    
+
     def check_detection(self, results):
         """ Checks the detection itself, which none of the subregion modes affect """
         assert len(results.rule_results.protoclusters) == 3
-        assert [(proto.product, proto.location) for proto in results.rule_results.protoclusters] == [
+        protoclusters = results.rule_results.protoclusters
+        assert [(proto.product, proto.location) for proto in protoclusters] == [
             ("SCG0041", DHPG_SPAN),
             ("SCG0042", HPG_SPAN),
             ("SCG0042", HPG_2_SPAN),
@@ -264,7 +265,6 @@ class TestSubclusters(unittest.TestCase):
         # same HGP subcluster, but further upstream
         assert hpg_2.location == HPG_2_SPAN
 
-
     def test_full_pathway_clip_mode(self):
         results, regions = self.run_with_mode("clip")
         assert results
@@ -277,7 +277,8 @@ class TestSubclusters(unittest.TestCase):
         assert len(predicted_subregions) == 1
         assert predicted_subregions[0].label == "subclusters"
         assert predicted_subregions[0].tool == "subclusters"
-        assert predicted_subregions[0].location == FeatureLocation(DHPG_SPAN.start, T3PKS_SPAN.end, 1)
+        assert predicted_subregions[0].location == FeatureLocation(DHPG_SPAN.start,
+                                                                   T3PKS_SPAN.end, 1)
 
         # region formation: only span of T3PKS protocluster
         assert len(regions) == 1
@@ -322,4 +323,3 @@ class TestSubclusters(unittest.TestCase):
         assert len(regions) == 2
         assert regions[0].location == FeatureLocation(T3PKS_SPAN.start, HPG_SPAN.end, 1)
         assert regions[1].location == HPG_2_SPAN
-                

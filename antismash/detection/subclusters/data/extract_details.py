@@ -10,7 +10,8 @@ Output columns (tab-separated): name  description  cutoff  hmm_file  [accession]
 from argparse import ArgumentParser, FileType
 import math
 import os
-from typing import IO, Optional
+from typing import IO
+
 
 def _main() -> None:
     parser = ArgumentParser(description=__doc__)
@@ -27,7 +28,6 @@ def _main() -> None:
     args = parser.parse_args()
 
     print(run(args.profile, args.name, args.description, args.cutoff, args.accession))
-
 
 
 def run(profile: IO, name: str = "", description: str = "", cutoff: int = -1,

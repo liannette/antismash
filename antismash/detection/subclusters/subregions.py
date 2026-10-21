@@ -90,7 +90,7 @@ def build_subregions(record: Record, areas: Sequence[CDSCollection], *, tool: st
     # "extend": only subclusters overlapping a foreign area are used for subregions
     if mode == SubRegionMode.EXTEND:
         filtered_areas = [area for area in areas
-                 if any(area.overlaps_with(location) for location in external)]
+                          if any(area.overlaps_with(location) for location in external)]
         if not filtered_areas:
             return []
 
@@ -118,7 +118,7 @@ def build_subregions(record: Record, areas: Sequence[CDSCollection], *, tool: st
         if len(parts) > 1:
             return CompoundLocation(parts)
         return parts[0]
-        
+
     clipped = []
     for subregion in subregions:
         for other_location in external:
