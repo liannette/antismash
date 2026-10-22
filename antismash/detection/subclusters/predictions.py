@@ -111,8 +111,6 @@ def _build_domain_hits(rule_name: str, cds_results: list[CDSResults]) -> list[CD
     """ Builds the domain hits that fired the given rule, flattened across the
         given CDS results
 
-        Where a domain matched a CDS more than once, only the strongest hit is kept.
-
         Arguments:
             rule_name: the name of the rule the hits must have contributed to
             cds_results: the CDS results to gather the hits from
@@ -124,19 +122,17 @@ def _build_domain_hits(rule_name: str, cds_results: list[CDSResults]) -> list[CD
     for cds_result in cds_results:
         cds_name = cds_result.cds.get_name()
         fired = cds_result.definition_domains.get(rule_name, set())
+        domains_by_name = {domain.name: domain for domain in cds_result.domains}
         for domain_name in sorted(fired):
-            matching = [domain for domain in cds_result.domains if domain.name == domain_name]
-            if not matching:
-                continue
-            best = max(matching, key=lambda domain: domain.bitscore)
+            domain = domains_by_name[domain_name]
             signature = get_signatures()[domain_name]
             hits.append(CDSDomainHit(
                 domain_name=signature.name,
                 domain_description=signature.description,
                 domain_accession=signature.accession,
                 cds_name=cds_name,
-                evalue=best.evalue,
-                bitscore=best.bitscore,
+                evalue=domain.evalue,
+                bitscore=domain.bitscore,
             ))
     return hits
 
@@ -157,15 +153,10 @@ def build_predictions(rule_results: RuleDetectionResults, strictness: str,
     predictions: list[SubclusterPrediction] = []
     for protocluster, cds_results in rule_results.cds_by_cluster.items():
         rule = ruleset.get_rule_by_name(protocluster.product)
-        # only the CDS features actually contributing to this rule are relevant,
-        # since a CDS within the cutoff may only define a neighbouring subcluster
-        contributing = [result for result in cds_results
-                        if result.definition_domains.get(protocluster.product)]
         predictions.append(SubclusterPrediction(
             rule=rule,
             location=protocluster.location,
-            # every rule must have a matching entry in the compound details file
             compound=get_compound(rule.name),
-            domain_hits=_build_domain_hits(rule.name, contributing),
+            domain_hits=_build_domain_hits(rule.name, cds_results),
         ))
     return predictions
