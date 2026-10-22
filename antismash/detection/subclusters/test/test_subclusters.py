@@ -29,6 +29,26 @@ def build_results(strictness="relaxed", mode="clip", rule_names=None):
     }
 
 
+class TestCheckOptions(unittest.TestCase):
+    def test_valid(self):
+        for strictness in ["strict", "relaxed", "loose"]:
+            for mode in ["clip", "extend", "create"]:
+                assert subclusters.check_options(build_options(strictness, mode)) == []
+
+    def test_unknown_strictness(self):
+        errors = subclusters.check_options(build_options(strictness="unknown"))
+        assert errors == ["Unknown subcluster strictness level: unknown"]
+
+    def test_unknown_mode(self):
+        errors = subclusters.check_options(build_options(mode="unknown"))
+        assert errors == ["Unknown subcluster subregion mode: unknown"]
+
+    def test_both_unknown(self):
+        errors = subclusters.check_options(build_options(strictness="bad", mode="worse"))
+        assert errors == ["Unknown subcluster strictness level: bad",
+                          "Unknown subcluster subregion mode: worse"]
+
+
 class TestRegenerate(unittest.TestCase):
     def regenerate(self, results, options):
         return subclusters.regenerate_previous_results(results, sentinel.record, options)
