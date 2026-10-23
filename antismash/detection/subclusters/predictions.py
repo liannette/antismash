@@ -15,7 +15,7 @@ from typing import Optional
 
 from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
 from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults, RuleDetectionResults
-from antismash.common.secmet.locations import FeatureLocation
+from antismash.common.secmet.locations import FeatureLocation, Location
 
 from .compounds import CompoundInfo, get_compound
 from .ruleset import get_ruleset
@@ -98,6 +98,22 @@ class SubclusterPrediction:
         for hit in self.domain_hits:
             hits_by_domain[hit.domain_name].append(hit)
         return dict(hits_by_domain)
+
+    def extends_beyond(self, location: Location) -> tuple[bool, bool]:
+        """ Returns whether the subcluster extends past the start and the end of
+            the given location, e.g. that of a region
+
+            Arguments:
+                location: the location to compare to
+
+            Returns:
+                a tuple of whether the subcluster extends past the start and
+                whether it extends past the end of the location
+        """
+        # the first and last parts are the sides of a location crossing the origin,
+        # and the end of a location is exclusive, so the last base is end - 1
+        return (self.location.parts[0].start not in location,
+                self.location.parts[-1].end - 1 not in location)
 
     def __repr__(self) -> str:
         return (

@@ -72,11 +72,11 @@ def generate_javascript_data(record: Record, region: Region,
                 "tooltip": template.render(domains=domains, cds_name=cds_name),
             })
 
-        data.append({
+        entry: dict[str, Any] = {
             "identifier": f"subclusters-svg-{region_anchor}-sc{i}",
             "cds_results": cds_results,
-            "extends_left": prediction.location.parts[0].start not in region.location,
-            "extends_right": prediction.location.parts[-1].end - 1 not in region.location,
-        })
+        }
+        entry["extends_left"], entry["extends_right"] = prediction.extends_beyond(region.location)
+        data.append(entry)
 
     return data

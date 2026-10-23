@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import unittest
 
 from antismash.common.layers import RegionLayer
-from antismash.common.secmet.locations import CompoundLocation, FeatureLocation
+from antismash.common.secmet.locations import FeatureLocation
 from antismash.detection.subclusters import html_output
 from antismash.detection.subclusters.compounds import CompoundInfo
 from antismash.detection.subclusters.predictions import CDSDomainHit, SubclusterPrediction
@@ -92,38 +92,13 @@ class TestJavascriptData(unittest.TestCase):
         assert span("domain-name", "B") not in second
         assert span("domain-description", "no description available") in second
 
-    def extends(self, location):
-        data = self.generate([build_prediction(location)])
-        return data[0]["extends_left"], data[0]["extends_right"]
-
-    def test_contained(self):
-        assert self.extends(FeatureLocation(150, 250, 1)) == (False, False)
-
-    def test_same_as_region(self):
-        # the end of a location is exclusive, so ending with the region doesn't extend it
-        assert self.extends(FeatureLocation(100, 500, 1)) == (False, False)
-
-    def test_extends_left(self):
-        assert self.extends(FeatureLocation(50, 250, 1)) == (True, False)
-        assert self.extends(FeatureLocation(99, 250, 1)) == (True, False)
-
-    def test_extends_right(self):
-        assert self.extends(FeatureLocation(150, 550, 1)) == (False, True)
-        assert self.extends(FeatureLocation(150, 501, 1)) == (False, True)
-
-    def test_extends_both(self):
-        assert self.extends(FeatureLocation(50, 550, 1)) == (True, True)
-
-    def test_cross_origin(self):
-        # a region crossing the origin of a circular record of length 1000
-        self.region.location = CompoundLocation([FeatureLocation(900, 1000, 1),
-                                                 FeatureLocation(0, 100, 1)])
-        inside = CompoundLocation([FeatureLocation(950, 1000, 1), FeatureLocation(0, 50, 1)])
-        assert self.extends(inside) == (False, False)
-        left = CompoundLocation([FeatureLocation(850, 1000, 1), FeatureLocation(0, 50, 1)])
-        assert self.extends(left) == (True, False)
-        right = CompoundLocation([FeatureLocation(950, 1000, 1), FeatureLocation(0, 150, 1)])
-        assert self.extends(right) == (False, True)
+    def test_extends(self):
+        # the details are tested with the prediction itself, so only check they're included
+        data = self.generate([build_prediction(FeatureLocation(50, 250, 1)),
+                              build_prediction(FeatureLocation(150, 550, 1))])
+        assert [(entry["extends_left"], entry["extends_right"]) for entry in data] == [
+            (True, False), (False, True),
+        ]
 
 
 class TestAnchorsMatch(unittest.TestCase):

@@ -22,6 +22,7 @@ import unittest
 from unittest.mock import patch, sentinel
 
 from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults
+from antismash.common.secmet.locations import CompoundLocation, FeatureLocation
 from antismash.common.secmet.qualifiers import SecMetQualifier
 from antismash.common.secmet.test.helpers import DummyCDS, DummyProtocluster
 from antismash.detection.subclusters import predictions
@@ -202,3 +203,38 @@ class TestSubclusterPrediction(unittest.TestCase):
 
         assert prediction.domain_hits_by_cds == {"cds1": [cds1_a, cds1_b], "cds2": [cds2_a]}
         assert prediction.domain_hits_by_domain == {"A": [cds1_a, cds2_a], "B": [cds1_b]}
+
+
+class TestExtendsBeyond(unittest.TestCase):
+    def extends(self, location, region=FeatureLocation(100, 500, 1)):
+        prediction = SubclusterPrediction(rule=build_rule(THIS_RULE), location=location,
+                                          compound=sentinel.compound, domain_hits=[])
+        return prediction.extends_beyond(region)
+
+    def test_contained(self):
+        assert self.extends(FeatureLocation(150, 250, 1)) == (False, False)
+
+    def test_same_as_region(self):
+        # the end of a location is exclusive, so ending with the region doesn't extend it
+        assert self.extends(FeatureLocation(100, 500, 1)) == (False, False)
+
+    def test_extends_left(self):
+        assert self.extends(FeatureLocation(50, 250, 1)) == (True, False)
+        assert self.extends(FeatureLocation(99, 250, 1)) == (True, False)
+
+    def test_extends_right(self):
+        assert self.extends(FeatureLocation(150, 550, 1)) == (False, True)
+        assert self.extends(FeatureLocation(150, 501, 1)) == (False, True)
+
+    def test_extends_both(self):
+        assert self.extends(FeatureLocation(50, 550, 1)) == (True, True)
+
+    def test_cross_origin(self):
+        # a region crossing the origin of a circular record of length 1000
+        region = CompoundLocation([FeatureLocation(900, 1000, 1), FeatureLocation(0, 100, 1)])
+        inside = CompoundLocation([FeatureLocation(950, 1000, 1), FeatureLocation(0, 50, 1)])
+        assert self.extends(inside, region) == (False, False)
+        left = CompoundLocation([FeatureLocation(850, 1000, 1), FeatureLocation(0, 50, 1)])
+        assert self.extends(left, region) == (True, False)
+        right = CompoundLocation([FeatureLocation(950, 1000, 1), FeatureLocation(0, 150, 1)])
+        assert self.extends(right, region) == (False, True)
