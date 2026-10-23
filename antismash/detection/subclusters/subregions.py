@@ -1,7 +1,7 @@
 # License: GNU Affero General Public License v3 or later
 # A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt.
 
-""" Construction of sub-regions from detected subclusters
+""" Construction of subregions from detected subclusters
 
     Sub-regions built here are added to the record during the region-formation
     step of the main pipeline, letting subclusters extend existing regions or
@@ -14,7 +14,7 @@
                module are kept, truncated to that area, so regions can never grow
 """
 from enum import StrEnum, auto
-from typing import Sequence
+from typing import Optional, Sequence
 
 from antismash.common.secmet import Record, SubRegion
 from antismash.common.secmet.features import CDSCollection
@@ -24,7 +24,7 @@ from antismash.common.secmet.locations import (
     Location,
 )
 
-# the label given to every sub-region created by this module
+# the label given to every subregion created by this module
 LABEL = "subclusters"
 
 
@@ -36,7 +36,7 @@ class SubRegionMode(StrEnum):
 
 
 def gather_foreign_areas(record: Record) -> list[CDSCollection]:
-    """ Returns the protoclusters and sub-regions of a record, all of which
+    """ Returns the protoclusters and subregions of a record, all of which
         belong to other detection modules
 
         This module's own protoclusters are never added to the record, so
@@ -55,23 +55,20 @@ def gather_foreign_areas(record: Record) -> list[CDSCollection]:
 
 def build_subregions(record: Record, areas: Sequence[CDSCollection], *, tool: str,
                      mode: SubRegionMode) -> list[SubRegion]:
-    """ Builds the sub-region features for a set of detected subclusters
+    """ Builds the subregion features for a set of detected subclusters
 
         Arguments:
             record: the record the subclusters were detected in, which must already
                     contain the areas found by any earlier detection module
             areas: the areas detected by this module, i.e. its protoclusters
-            tool: the tool name to set on each resulting sub-region
+            tool: the tool name to set on each resulting subregion
             mode: how far the subclusters may alter region boundaries
 
         Returns:
-            a list of sub-regions, which may be empty
+            a list of subregions, which may be empty
     """
     if mode not in SubRegionMode:
-        raise ValueError(f"Unknown subcluster subregion mode: {mode!r}")
-
-    if not areas:
-        return []
+        raise ValueError(f"Unknown subcluster region mode: {mode!r}")
 
     subregions = [
         SubRegion(location, tool=tool, label=LABEL)
@@ -91,19 +88,15 @@ def build_subregions(record: Record, areas: Sequence[CDSCollection], *, tool: st
     if mode == SubRegionMode.EXTEND:
         filtered_areas = [area for area in areas
                           if any(area.overlaps_with(location) for location in external)]
-        if not filtered_areas:
-            return []
-
-        subregions = [
+        return [
             SubRegion(location, tool=tool, label=LABEL)
             for location, _ in record.get_potential_regions(filtered_areas)
         ]
-        return subregions
 
     # "clip": only the sections shared with an area from another module are kept,
     # so the truncated results are locations rather than protoclusters
 
-    def clip_location(location: Location, limit: Location) -> Location | None:
+    def clip_location(location: Location, limit: Location) -> Optional[Location]:
         # intersect each part separately, as either location may cross the origin
         parts = []
         for part in location.parts:

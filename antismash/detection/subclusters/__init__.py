@@ -17,7 +17,7 @@ from antismash.detection import DetectionStage
 
 from .predictions import build_predictions
 from .results import SubclusterDetectionResults
-from .ruleset import get_ruleset, _STRICTNESS_LEVELS
+from .ruleset import STRICTNESS_LEVELS, get_ruleset
 from .signatures import AGGREGATE_HMM_FILE, DETAILS_FILE, get_signatures
 from .subregions import SubRegionMode, build_subregions
 from .html_output import generate_html, will_handle, generate_javascript_data  # noqa: F401
@@ -43,7 +43,7 @@ def get_arguments() -> ModuleArgs:
     args.add_option('strictness',
                     dest='strictness',
                     type=str,
-                    choices=list(_STRICTNESS_LEVELS),
+                    choices=list(STRICTNESS_LEVELS),
                     default="relaxed",
                     help=("Defines which level of strictness to use for "
                           "subcluster detection. Levels are cumulative, so "
@@ -53,7 +53,7 @@ def get_arguments() -> ModuleArgs:
                     dest='subregion_mode',
                     type=str,
                     choices=list(SubRegionMode),
-                    default=str(SubRegionMode.CLIP).lower(),
+                    default=SubRegionMode.CLIP,
                     help=("How far detected subclusters may influence region formation. "
                           "The 'clip' option keeps only the part of a subcluster "
                           "overlapping an area found by another detection module, "
@@ -70,13 +70,13 @@ def check_options(options: ConfigType) -> list[str]:
         running any analyses
     """
     errors = []
-    if options.subclusters_strictness not in _STRICTNESS_LEVELS:
+    if options.subclusters_strictness not in STRICTNESS_LEVELS:
         errors.append(f"Unknown subcluster strictness level: {options.subclusters_strictness}")
 
     try:
-        SubRegionMode[options.subclusters_subregion_mode.upper()]
-    except KeyError:
-        errors.append(f"Unknown subcluster subregion mode: {options.subclusters_subregion_mode}")
+        SubRegionMode(options.subclusters_subregion_mode)
+    except ValueError:
+        errors.append(f"Unknown subcluster region mode: {options.subclusters_subregion_mode}")
 
     return errors
 
@@ -123,8 +123,8 @@ def prepare_data(logging_only: bool = False) -> list[str]:
 
 
 def check_prereqs(options: ConfigType) -> list[str]:
-    """ Check that prereqs are satisfied. hmmpress is only required if the
-        databases have not yet been generated.
+    """ Checks that the required executables are available and that the
+        packaged data is prepared
     """
     failure_messages = []
     for binary_name in ["hmmsearch", "hmmpress"]:
@@ -165,7 +165,7 @@ def regenerate_previous_results(results: dict[str, Any], record: Record,
     if not results:
         return None
 
-    current_mode = SubRegionMode[options.subclusters_subregion_mode.upper()]
+    current_mode = SubRegionMode(options.subclusters_subregion_mode)
     current_rule_names = get_ruleset(options.subclusters_strictness).get_rule_names()
 
     mode_changed = results.get("subregion_mode") != current_mode
@@ -173,7 +173,7 @@ def regenerate_previous_results(results: dict[str, Any], record: Record,
 
     # full antismash rerun necessary if the mode changes
     if mode_changed:
-        raise RuntimeError("Subcluster mode changed, no results can be reused")
+        raise RuntimeError("Subcluster region mode changed, no results can be reused")
 
     # rule set must be unchanged to regenerate results
     if rules_changed:
@@ -203,16 +203,13 @@ def run_on_record(record: Record, previous_results: Optional[SubclusterDetection
     current_strictness = options.subclusters_strictness
     ruleset = get_ruleset(current_strictness)
     rule_results = detect_protoclusters_and_signatures(record, ruleset)
-    # The shared rule-based detection pipeline hardcodes the protocluster
-    # "aStool" qualifier to "rule-based-clusters". These protoclusters were
-    # produced by this module, so relabel them with this module's tool name
-    # to avoid the misleading qualifier in the output.
+    # the shared detection labels protoclusters as "rule-based-clusters", so use this module's name
     for protocluster in rule_results.protoclusters:
         protocluster.tool = rule_results.tool
 
     predictions = build_predictions(rule_results, current_strictness)
 
-    subregion_mode = SubRegionMode[options.subclusters_subregion_mode.upper()]
+    subregion_mode = SubRegionMode(options.subclusters_subregion_mode)
     subregions = build_subregions(record, rule_results.protoclusters,
                                   tool=rule_results.tool, mode=subregion_mode)
 

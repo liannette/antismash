@@ -218,7 +218,7 @@ class TestSubclusters(unittest.TestCase):
                 "--enable-html"]
 
     def build_options(self, mode="create"):
-        """ Replaces any active config with one for the given subregion mode """
+        """ Replaces any active config with one for the given region mode """
         destroy_config()
         return update_config(build_config(self.get_args(mode), isolated=True,
                                           modules=antismash.get_all_modules()))
@@ -254,7 +254,7 @@ class TestSubclusters(unittest.TestCase):
         return results, regions
 
     def check_detection(self, results):
-        """ Checks the detection itself, which none of the subregion modes affect """
+        """ Checks the detection itself, which none of the region modes affect """
         assert len(results.rule_results.protoclusters) == 3
         protoclusters = results.rule_results.protoclusters
         assert [(proto.product, proto.location) for proto in protoclusters] == [
@@ -293,7 +293,7 @@ class TestSubclusters(unittest.TestCase):
             ("AJAP_32155", "PDH_N"),
         ]
 
-        # same HGP subcluster, but further upstream
+        # same HPG subcluster, but further upstream
         assert hpg_2.location == HPG_2_SPAN
 
     def test_full_pathway_clip_mode(self):
@@ -333,7 +333,7 @@ class TestSubclusters(unittest.TestCase):
         assert predicted_subregions[0].tool == "subclusters"
         assert predicted_subregions[0].location == DHPG_SPAN
 
-        # region formation: panning protoclusters for T3PKS and dhpg
+        # region formation: spanning protoclusters for T3PKS and dhpg
         assert len(regions) == 1
         assert regions[0].location == FeatureLocation(T3PKS_SPAN.start, DHPG_SPAN.end, 1)
 

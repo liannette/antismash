@@ -45,8 +45,8 @@ class TestWillHandle(unittest.TestCase):
 class TestJavascriptData(unittest.TestCase):
     def setUp(self):
         self.record = SimpleNamespace(record_index=2)
-        self.region = SimpleNamespace(location=FeatureLocation(100, 500, 1),
-                                      get_region_number=lambda: 3)
+        self.region = SimpleNamespace(parent_record=self.record, get_region_number=lambda: 3,
+                                      location=FeatureLocation(100, 500, 1))
 
     def generate(self, predictions):
         return html_output.generate_javascript_data(self.record, self.region,

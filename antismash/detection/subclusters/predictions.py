@@ -3,11 +3,8 @@
 
 """ Construction of the view objects describing each detected subcluster
 
-    Predictions are a plain derivation of the rule detection results and the
-    ruleset detection ran with, so they aren't serialised with the results and
-    are instead rebuilt whenever those results are reconstructed. Every compound
-    and signature lookup happens here, so the results themselves never have to
-    reach back into the packaged details files.
+    Predictions are derived from the rule detection results, so they aren't
+    stored with the results and are rebuilt when the results are reconstructed.
 """
 from collections import defaultdict
 from dataclasses import dataclass
@@ -15,7 +12,7 @@ from typing import Optional
 
 from antismash.common.hmm_rule_parser.rule_parser import DetectionRule
 from antismash.common.hmm_rule_parser.cluster_prediction import CDSResults, RuleDetectionResults
-from antismash.common.secmet.locations import FeatureLocation, Location
+from antismash.common.secmet.locations import Location
 
 from .compounds import CompoundInfo, get_compound
 from .ruleset import get_ruleset
@@ -57,7 +54,7 @@ class SubclusterPrediction:
             self,
             *,
             rule: DetectionRule,
-            location: FeatureLocation,
+            location: Location,
             compound: CompoundInfo,
             domain_hits: list[CDSDomainHit],
     ) -> None:
@@ -134,6 +131,7 @@ def _build_domain_hits(rule_name: str, cds_results: list[CDSResults]) -> list[CD
         Returns:
             a list of domain hits
     """
+    signatures = get_signatures()
     hits: list[CDSDomainHit] = []
     for cds_result in cds_results:
         cds_name = cds_result.cds.get_name()
@@ -141,9 +139,9 @@ def _build_domain_hits(rule_name: str, cds_results: list[CDSResults]) -> list[CD
         domains_by_name = {domain.name: domain for domain in cds_result.domains}
         for domain_name in sorted(fired):
             domain = domains_by_name[domain_name]
-            signature = get_signatures()[domain_name]
+            signature = signatures[domain_name]
             hits.append(CDSDomainHit(
-                domain_name=signature.name,
+                domain_name=domain_name,
                 domain_description=signature.description,
                 domain_accession=signature.accession,
                 cds_name=cds_name,

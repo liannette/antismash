@@ -12,7 +12,7 @@ from .signatures import AGGREGATE_HMM_FILE, HmmSignature, get_signatures
 
 # Strictness levels are cumulative: each level includes all levels above it,
 # ordered from most to least strict.
-_STRICTNESS_LEVELS = ("strict", "relaxed", "loose")
+STRICTNESS_LEVELS = ("strict", "relaxed", "loose")
 
 # Categories referenced across all rule files, should always be "Subcluster"
 _CATEGORIES = {"Subcluster"}
@@ -32,9 +32,9 @@ def get_ruleset(strictness: str) -> Ruleset:
         Returns:
             a ruleset ready for use by the rule-based detection pipeline
     """
-    if strictness not in _STRICTNESS_LEVELS:
+    if strictness not in STRICTNESS_LEVELS:
         raise ValueError(f"Unknown strictness level {strictness!r}. "
-                         f"Valid levels: {', '.join(_STRICTNESS_LEVELS)}")
+                         f"Valid levels: {', '.join(STRICTNESS_LEVELS)}")
 
     if strictness in _CACHE:
         return _CACHE[strictness]
@@ -56,7 +56,7 @@ def _rule_files_for_strictness(strictness: str) -> list[str]:
         Returns:
             a list of paths to rule files
     """
-    levels = _STRICTNESS_LEVELS[: _STRICTNESS_LEVELS.index(strictness) + 1]
+    levels = STRICTNESS_LEVELS[: STRICTNESS_LEVELS.index(strictness) + 1]
     return [path.get_full_path(__file__, "subcluster_rules", f"{level}.txt") for level in levels]
 
 

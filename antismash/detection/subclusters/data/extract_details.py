@@ -46,7 +46,8 @@ def run(profile: IO, name: str = "", description: str = "", cutoff: int = -1,
         Returns:
             a hmmdetails.txt-compatible line of text
     """
-    filename = os.path.basename(profile.name)
+    # profiles are kept in the rule_hmms directory next to the details file
+    filename = f"rule_hmms/{os.path.basename(profile.name)}"
     found_acc = ""
 
     line = profile.readline().strip()

@@ -41,12 +41,12 @@ class TestCheckOptions(unittest.TestCase):
 
     def test_unknown_mode(self):
         errors = subclusters.check_options(build_options(mode="unknown"))
-        assert errors == ["Unknown subcluster subregion mode: unknown"]
+        assert errors == ["Unknown subcluster region mode: unknown"]
 
     def test_both_unknown(self):
         errors = subclusters.check_options(build_options(strictness="bad", mode="worse"))
         assert errors == ["Unknown subcluster strictness level: bad",
-                          "Unknown subcluster subregion mode: worse"]
+                          "Unknown subcluster region mode: worse"]
 
 
 class TestRegenerate(unittest.TestCase):

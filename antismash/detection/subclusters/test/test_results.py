@@ -4,7 +4,6 @@
 # for test files, silence irrelevant and noisy pylint warnings
 # pylint: disable=use-implicit-booleaness-not-comparison,protected-access,missing-docstring
 
-from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -13,21 +12,6 @@ from antismash.common.hmm_rule_parser.structures import Multipliers
 from antismash.common.secmet.test.helpers import DummyRecord
 from antismash.detection.subclusters import results as results_module
 from antismash.detection.subclusters.results import SubclusterDetectionResults
-
-
-class TestInit(unittest.TestCase):
-    def test_bad_subregion_mode(self):
-        record = DummyRecord(seq="A" * 100)
-        with self.assertRaisesRegex(ValueError, "Unknown subcluster subregion mode"):
-            SubclusterDetectionResults(
-                record_id=record.id,
-                rule_results=SimpleNamespace(tool="subclusters"),
-                rule_names=set(),
-                strictness="relaxed",
-                predictions=[],
-                subregions=[],
-                subregion_mode="invalid",
-            )
 
 
 class TestFromJSON(unittest.TestCase):

@@ -9,7 +9,7 @@ import unittest
 
 from antismash.common import path
 from antismash.detection.subclusters import compounds
-from antismash.detection.subclusters.ruleset import _STRICTNESS_LEVELS, get_ruleset
+from antismash.detection.subclusters.ruleset import STRICTNESS_LEVELS, get_ruleset
 from antismash.detection.subclusters.signatures import get_signatures
 
 COMPOUND_FILE = path.get_full_path(compounds.__file__, "data", "compound_details.txt")
@@ -20,13 +20,13 @@ class TestDataConsistency(unittest.TestCase):
         self.compounds = compounds._read_compounds(COMPOUND_FILE)
 
     def test_every_rule_has_compound(self):
-        for strictness in _STRICTNESS_LEVELS:
+        for strictness in STRICTNESS_LEVELS:
             missing = get_ruleset(strictness).get_rule_names() - set(self.compounds)
             assert not missing, f"rules without compound in {strictness}: {sorted(missing)}"
 
     def test_every_compound_has_rule(self):
         # the least strict level contains the rules of all levels
-        rule_names = get_ruleset(_STRICTNESS_LEVELS[-1]).get_rule_names()
+        rule_names = get_ruleset(STRICTNESS_LEVELS[-1]).get_rule_names()
         unused = set(self.compounds) - rule_names
         assert not unused, f"compounds without rule: {sorted(unused)}"
 

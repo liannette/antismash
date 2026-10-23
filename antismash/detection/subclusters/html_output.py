@@ -36,19 +36,19 @@ def generate_html(region_layer: RegionLayer, results: SubclusterDetectionResults
     return html
 
 
-def generate_javascript_data(record: Record, region: Region,
+def generate_javascript_data(_record: Record, region: Region,
                              results: SubclusterDetectionResults) -> list[Any]:
     """ Generates JSON data for the javascript to draw subclusters in HTML output
 
         Arguments:
-            record: the record the results belong to
+            _record: the record the results belong to, unused as the region refers to it
             region: the specific region to generate data for
             results: the results of the module
 
         Returns:
             a list of JSON-friendly dictionaries, one for each subcluster in the region
     """
-    region_anchor = f"r{record.record_index}c{region.get_region_number()}"
+    region_anchor = RegionLayer.build_anchor_id(region)
     template = FileTemplate(path.get_full_path(__file__, "templates", "cds_tooltip.html"))
 
     predictions = results.get_predictions_for_region(region)

@@ -29,10 +29,6 @@ class SubclusterDetectionResults(DetectionResults):
             subregions: list[SubRegion],
             subregion_mode: SubRegionMode,
     ) -> None:
-
-        if subregion_mode not in SubRegionMode:
-            raise ValueError(f"Unknown subcluster subregion mode: {subregion_mode!r}")
-
         super().__init__(record_id)
         self.rule_results = rule_results
         self.rule_names = rule_names
@@ -56,7 +52,7 @@ class SubclusterDetectionResults(DetectionResults):
         ]
 
     def get_predicted_subregions(self) -> list[SubRegion]:
-        """ Returns the sub-region features for the detected subclusters
+        """ Returns the subregion features for the detected subclusters
 
             These are built when detection runs, since they depend on the areas
             found by the other detection modules, and are added to the record

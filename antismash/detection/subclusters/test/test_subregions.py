@@ -86,7 +86,7 @@ class TestBuildSubregionsGeneral(unittest.TestCase):
     def test_bad_modes(self):
         record = create_record()
         for bad in ["invalid", "", None, 5]:
-            with self.assertRaisesRegex(ValueError, "Unknown subcluster subregion mode"):
+            with self.assertRaisesRegex(ValueError, "Unknown subcluster region mode"):
                 build_subregions(record, [create_protocluster(10, 50)], tool=TOOL, mode=bad)
 
     def test_no_areas(self):
