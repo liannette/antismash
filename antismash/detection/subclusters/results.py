@@ -117,8 +117,3 @@ class SubclusterDetectionResults(DetectionResults):
             subregions=build_subregions(record, rule_results.protoclusters,
                                         tool=rule_results.tool, mode=subregion_mode),
         )
-
-    def add_to_record(self, record: Record) -> None:
-        """ Not implemented """
-        if record.id != self.record_id:
-            raise ValueError("Record to store in and record analysed don't match")
