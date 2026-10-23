@@ -315,6 +315,10 @@ class TestSubclusters(unittest.TestCase):
         assert len(regions) == 1
         assert regions[0].location == T3PKS_SPAN
 
+        # predictions shown for the region: only dhpg overlaps it
+        dhpg, _, _ = results.predictions
+        assert results.get_predictions_for_region(regions[0]) == [dhpg]
+
     def test_full_pathway_extend_mode(self):
         results, regions = self.run_with_mode("extend")
         assert results
@@ -332,6 +336,10 @@ class TestSubclusters(unittest.TestCase):
         # region formation: panning protoclusters for T3PKS and dhpg
         assert len(regions) == 1
         assert regions[0].location == FeatureLocation(T3PKS_SPAN.start, DHPG_SPAN.end, 1)
+
+        # predictions shown for the region: dhpg, and hpg as it starts within dhpg
+        dhpg, hpg, _ = results.predictions
+        assert results.get_predictions_for_region(regions[0]) == [dhpg, hpg]
 
     def test_full_pathway_create_mode(self):
         results, regions = self.run_with_mode("create")
@@ -354,3 +362,8 @@ class TestSubclusters(unittest.TestCase):
         assert len(regions) == 2
         assert regions[0].location == FeatureLocation(T3PKS_SPAN.start, HPG_SPAN.end, 1)
         assert regions[1].location == HPG_2_SPAN
+
+        # predictions shown for each region: the far away hpg only in the second
+        dhpg, hpg, hpg_2 = results.predictions
+        assert results.get_predictions_for_region(regions[0]) == [dhpg, hpg]
+        assert results.get_predictions_for_region(regions[1]) == [hpg_2]
