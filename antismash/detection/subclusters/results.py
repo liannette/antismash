@@ -119,9 +119,6 @@ class SubclusterDetectionResults(DetectionResults):
         )
 
     def add_to_record(self, record: Record) -> None:
-        """ Adds the detected domains as annotations on the CDS features of the
-            given record
-        """
+        """ Not implemented """
         if record.id != self.record_id:
             raise ValueError("Record to store in and record analysed don't match")
-        self.rule_results.annotate_cds_features()
