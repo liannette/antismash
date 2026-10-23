@@ -1199,10 +1199,22 @@ class Record:
 
     def get_potential_regions(self, areas: Sequence[CDSCollection],
                               ) -> list[tuple[Location, list[CDSCollection]]]:
-        areas = sorted(areas)
+        """ Groups the given areas into the locations regions would cover,
+            without creating or adding any regions.
 
+            Overlapping areas are merged into a single location and, in circular
+            records, so are areas overlapping across the origin.
+
+            Arguments:
+                areas: the areas to group, e.g. candidate clusters and subregions
+
+            Returns:
+                a list of tuples, one for each potential region, each containing
+                the location of that region and the areas it would contain
+        """
         if not areas:
             return []
+        areas = sorted(areas)
 
         wrap_point = len(self) if self.is_circular() else None
 
