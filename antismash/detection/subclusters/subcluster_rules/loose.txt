@@ -3,7 +3,7 @@
 
 RULE SCG0062
     CATEGORY Subcluster
-    DESCRIPTION Diiodotetrayne intermediate
+    DESCRIPTION Diiodotetrayne intermediate moiety
     CUTOFF 25
     NEIGHBOURHOOD 0
     CONDITIONS 4HBT_2

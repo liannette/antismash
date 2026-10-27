@@ -5,7 +5,7 @@
 
 RULE SCG0002
     CATEGORY Subcluster
-    DESCRIPTION L-streptose
+    DESCRIPTION L-streptose moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS NTP_transferase
@@ -15,7 +15,7 @@ RULE SCG0002
 
 RULE SCG0004
     CATEGORY Subcluster
-    DESCRIPTION actinamine
+    DESCRIPTION actinamine moiety
     CUTOFF 15
     NEIGHBOURHOOD 0
     CONDITIONS Inositol_P
@@ -25,7 +25,7 @@ RULE SCG0004
 
 RULE SCG0005
     CATEGORY Subcluster
-    DESCRIPTION actinospectose
+    DESCRIPTION actinospectose moiety
     CUTOFF 15
     NEIGHBOURHOOD 0
     CONDITIONS NTP_transferase
@@ -35,7 +35,7 @@ RULE SCG0005
 
 RULE SCG0006
     CATEGORY Subcluster
-    DESCRIPTION 3-amino-4,7-dihydroxycoumarin
+    DESCRIPTION 3-amino-4,7-dihydroxycoumarin moiety
     CUTOFF 10
     NEIGHBOURHOOD 0
     CONDITIONS p450
@@ -45,7 +45,7 @@ RULE SCG0006
 
 RULE SCG0007
     CATEGORY Subcluster
-    DESCRIPTION 4-O-demethyl-beta-L-noviose
+    DESCRIPTION 4-O-demethyl-beta-L-noviose moiety
     CUTOFF 10
     NEIGHBOURHOOD 0
     CONDITIONS NTP_transferase
@@ -56,7 +56,7 @@ RULE SCG0007
 
 RULE SCG0008
     CATEGORY Subcluster
-    DESCRIPTION 3-prenyl-4-hydroxybenzoic acid
+    DESCRIPTION 3-prenyl-4-hydroxybenzoic acid moiety
     CUTOFF 30
     NEIGHBOURHOOD 0
     CONDITIONS PDH_N
@@ -65,7 +65,7 @@ RULE SCG0008
 
 RULE SCG0011
     CATEGORY Subcluster
-    DESCRIPTION platensic acid
+    DESCRIPTION platensic acid moiety
     CUTOFF 15
     NEIGHBOURHOOD 0
     CONDITIONS SQHop_cyclase_C
@@ -74,7 +74,7 @@ RULE SCG0011
 
 RULE SCG0012
     CATEGORY Subcluster
-    DESCRIPTION 3-amino-2,4-dihydroxybenzoic acid
+    DESCRIPTION 3-amino-2,4-dihydroxybenzoic acid moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS DeoC
@@ -83,7 +83,7 @@ RULE SCG0012
 
 RULE SCG0015
     CATEGORY Subcluster
-    DESCRIPTION benzoisochromanequinone polyketide
+    DESCRIPTION benzoisochromanequinone polyketide moiety
     CUTOFF 30
     NEIGHBOURHOOD 0
     CONDITIONS PP-binding
@@ -96,7 +96,7 @@ RULE SCG0015
 
 RULE SCG0016
     CATEGORY Subcluster
-    DESCRIPTION D-angolosamine
+    DESCRIPTION D-angolosamine moiety
     CUTOFF 10
     NEIGHBOURHOOD 0
     CONDITIONS DegT_DnrJ_EryC1
@@ -108,7 +108,7 @@ RULE SCG0016
 
 RULE SCG0017
     CATEGORY Subcluster
-    DESCRIPTION dihydrokalafungin
+    DESCRIPTION dihydrokalafungin moiety
     CUTOFF 25
     NEIGHBOURHOOD 0
     CONDITIONS Acyl-CoA_dh_2
@@ -122,7 +122,7 @@ RULE SCG0017
 
 RULE SCG0018
     CATEGORY Subcluster
-    DESCRIPTION L-rhodinose
+    DESCRIPTION L-rhodinose moiety
     CUTOFF 25
     NEIGHBOURHOOD 0
     CONDITIONS NTP_transferase
@@ -135,7 +135,7 @@ RULE SCG0018
 
 RULE SCG0020
     CATEGORY Subcluster
-    DESCRIPTION D-olivose
+    DESCRIPTION D-olivose moiety
     CUTOFF 25
     NEIGHBOURHOOD 0
     CONDITIONS NTP_transferase
@@ -146,7 +146,7 @@ RULE SCG0020
 
 RULE SCG0021
     CATEGORY Subcluster
-    DESCRIPTION 3-amino-4,7-dihydroxy-8-chlorocoumarin
+    DESCRIPTION 3-amino-4,7-dihydroxy-8-chlorocoumarin moiety
     CUTOFF 15
     NEIGHBOURHOOD 0
     CONDITIONS p450
@@ -156,7 +156,7 @@ RULE SCG0021
 
 RULE SCG0023
     CATEGORY Subcluster
-    DESCRIPTION 3-methyl-aspartate
+    DESCRIPTION 3-methyl-aspartate moiety
     CUTOFF 10
     NEIGHBOURHOOD 0
     CONDITIONS Glu_synthase
@@ -165,7 +165,7 @@ RULE SCG0023
 
 RULE SCG0025
     CATEGORY Subcluster
-    DESCRIPTION 3,6-dimethylsalicylic acid
+    DESCRIPTION dimethylsalicylic acid moiety
     CUTOFF 15
     NEIGHBOURHOOD 0
     CONDITIONS cds(AMP-binding and AMP-binding_C)
@@ -175,7 +175,7 @@ RULE SCG0025
 
 RULE SCG0030
     CATEGORY Subcluster
-    DESCRIPTION 4-amino-4-deoxy-3-methyl-β-d-ribose
+    DESCRIPTION 4-amino-4-deoxy-3-methyl-β-d-ribose moiety
     CUTOFF 15
     NEIGHBOURHOOD 0
     CONDITIONS NTP_transferase
@@ -186,7 +186,7 @@ RULE SCG0030
 
 RULE SCG0032
     CATEGORY Subcluster
-    DESCRIPTION 4-hydroxyphenylglycine
+    DESCRIPTION 4-hydroxyphenylglycine moiety
     CUTOFF 65
     NEIGHBOURHOOD 0
     CONDITIONS Glyoxalase
@@ -196,7 +196,7 @@ RULE SCG0032
 
 RULE SCG0033
     CATEGORY Subcluster
-    DESCRIPTION beta-hydroxytyrosine
+    DESCRIPTION beta-hydroxytyrosine moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS p450
@@ -205,7 +205,7 @@ RULE SCG0033
 
 RULE SCG0034
     CATEGORY Subcluster
-    DESCRIPTION dehydrovancosamine
+    DESCRIPTION dehydrovancosamine moiety
     CUTOFF 20
     NEIGHBOURHOOD 0
     CONDITIONS Hexose_dehydrat
@@ -215,7 +215,7 @@ RULE SCG0034
 
 RULE SCG0035
     CATEGORY Subcluster
-    DESCRIPTION L-enduracididine
+    DESCRIPTION L-enduracididine moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS repeatable(2, [Aminotran_1_2])
@@ -223,7 +223,7 @@ RULE SCG0035
 
 RULE SCG0036
     CATEGORY Subcluster
-    DESCRIPTION 4-methylproline
+    DESCRIPTION 4-methylproline moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS cds(ADH_N and ADH_zinc_N)
@@ -231,7 +231,7 @@ RULE SCG0036
 
 RULE SCG0037
     CATEGORY Subcluster
-    DESCRIPTION p-aminophenylpyruvate
+    DESCRIPTION p-aminophenylpyruvate moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS PDH_C
@@ -240,7 +240,7 @@ RULE SCG0037
 
 RULE SCG0038
     CATEGORY Subcluster
-    DESCRIPTION 4-methyl-3-hydroxyanthranilic acid
+    DESCRIPTION 4-methyl-3-hydroxyanthranilic acid moiety
     CUTOFF 35
     NEIGHBOURHOOD 0
     CONDITIONS repeatable(2, [KYNU_C])
@@ -249,7 +249,7 @@ RULE SCG0038
 
 RULE SCG0039
     CATEGORY Subcluster
-    DESCRIPTION salicylate
+    DESCRIPTION salicylate moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS Chorismate_bind_2
@@ -257,7 +257,7 @@ RULE SCG0039
 
 RULE SCG0040
     CATEGORY Subcluster
-    DESCRIPTION 4-O-carbamoyl-2-deoxyrhamnose
+    DESCRIPTION 4-O-carbamoyl-2-deoxyrhamnose moiety
     CUTOFF 15
     NEIGHBOURHOOD 0
     CONDITIONS GDP_Man_Dehyd
@@ -269,7 +269,7 @@ RULE SCG0040
 
 RULE SCG0043
     CATEGORY Subcluster
-    DESCRIPTION 2,4-diaminobutyric acid
+    DESCRIPTION diaminobutyric acid moiety
     CUTOFF 10
     NEIGHBOURHOOD 0
     CONDITIONS Lyase_1
@@ -279,7 +279,7 @@ RULE SCG0043
 
 RULE SCG0046
     CATEGORY Subcluster
-    DESCRIPTION L-mycarose
+    DESCRIPTION L-mycarose moiety
     CUTOFF 65
     NEIGHBOURHOOD 0
     CONDITIONS Hexose_dehydrat
@@ -289,7 +289,7 @@ RULE SCG0046
 
 RULE SCG0047
     CATEGORY Subcluster
-    DESCRIPTION D-desosamine
+    DESCRIPTION D-desosamine moiety
     CUTOFF 65
     NEIGHBOURHOOD 0
     CONDITIONS repeatable(2, [DegT_DnrJ_EryC1])
@@ -299,7 +299,7 @@ RULE SCG0047
 
 RULE SCG0049
     CATEGORY Subcluster
-    DESCRIPTION pyrrole-2-carboxylic acid
+    DESCRIPTION pyrrole-2-carboxylic acid moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS PP-binding
@@ -308,7 +308,7 @@ RULE SCG0049
 
 RULE SCG0050
     CATEGORY Subcluster
-    DESCRIPTION platencinic acid
+    DESCRIPTION platencinic acid moiety
     CUTOFF 15
     NEIGHBOURHOOD 0
     CONDITIONS UbiA
@@ -317,7 +317,7 @@ RULE SCG0050
 
 RULE SCG0052
     CATEGORY Subcluster
-    DESCRIPTION aminomalonyl-ACP
+    DESCRIPTION aminomalonyl-ACP moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS PP-binding
@@ -327,7 +327,7 @@ RULE SCG0052
 
 RULE SCG0053
     CATEGORY Subcluster
-    DESCRIPTION beta-ureidoalanine
+    DESCRIPTION beta-ureidoalanine moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS PALP
@@ -336,7 +336,7 @@ RULE SCG0053
 
 RULE SCG0054
     CATEGORY Subcluster
-    DESCRIPTION enduracididine
+    DESCRIPTION enduracididine moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS repeatable(2, [Aminotran_1_2])
@@ -344,7 +344,7 @@ RULE SCG0054
 
 RULE SCG0055
     CATEGORY Subcluster
-    DESCRIPTION 2,3-diaminopropionate
+    DESCRIPTION diaminopropionate moiety
     SUPERIORS SCG0053
     CUTOFF 20
     NEIGHBOURHOOD 0
@@ -353,7 +353,7 @@ RULE SCG0055
 
 RULE SCG0056
     CATEGORY Subcluster
-    DESCRIPTION capreomycidine
+    DESCRIPTION capreomycidine moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS TauD
@@ -361,7 +361,7 @@ RULE SCG0056
 
 RULE SCG0057
     CATEGORY Subcluster
-    DESCRIPTION (S)-3-chloro-5-hydroxy-β-tyrosine
+    DESCRIPTION (S)-3-chloro-5-hydroxy-β-tyrosine moiety
     CUTOFF 40
     NEIGHBOURHOOD 0
     CONDITIONS Trp_halogenase
@@ -372,7 +372,7 @@ RULE SCG0057
 
 RULE SCG0058
     CATEGORY Subcluster
-    DESCRIPTION isobutyrylmalonyl-CoA
+    DESCRIPTION isobutyrylmalonyl-CoA moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS ACP_syn_III_C
@@ -381,7 +381,7 @@ RULE SCG0058
 
 RULE SCG0059
     CATEGORY Subcluster
-    DESCRIPTION allylmalonyl-CoA
+    DESCRIPTION allylmalonyl-CoA moiety
     CUTOFF 10
     NEIGHBOURHOOD 0
     CONDITIONS Ketoacyl-synt_C
@@ -391,7 +391,7 @@ RULE SCG0059
 
 RULE SCG0060
     CATEGORY Subcluster
-    DESCRIPTION 4-keto-D-olivose
+    DESCRIPTION 4-keto-D-olivose moiety
     CUTOFF 15
     NEIGHBOURHOOD 0
     CONDITIONS NTP_transferase
@@ -401,7 +401,7 @@ RULE SCG0060
 
 RULE SCG0061
     CATEGORY Subcluster
-    DESCRIPTION isoprene
+    DESCRIPTION isoprene moiety
     CUTOFF 5
     NEIGHBOURHOOD 0
     CONDITIONS cds(GcpE and GcpE_C)

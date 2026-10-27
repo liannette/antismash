@@ -2,7 +2,7 @@
 
 RULE TestDhpg
     CATEGORY Subcluster
-    DESCRIPTION 3,5-dihydroxyphenylglycine
+    DESCRIPTION dihydroxyphenylglycine moiety
     CUTOFF 25
     NEIGHBOURHOOD 0
     CONDITIONS Chal_sti_synt_C
@@ -11,7 +11,7 @@ RULE TestDhpg
 
 RULE TestHpg
     CATEGORY Subcluster
-    DESCRIPTION 4-hydroxyphenylglycine
+    DESCRIPTION 4-hydroxyphenylglycine moiety
     CUTOFF 65
     NEIGHBOURHOOD 0
     CONDITIONS Glyoxalase

@@ -5,7 +5,7 @@
 
 RULE SCG0031
     CATEGORY Subcluster
-    DESCRIPTION 3,5-dihydroxyphenylglycine
+    DESCRIPTION dihydroxyphenylglycine moiety
     CUTOFF 25
     NEIGHBOURHOOD 0
     CONDITIONS Chal_sti_synt_C
