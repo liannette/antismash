@@ -53,7 +53,7 @@ def get_arguments() -> ModuleArgs:
                     dest='subregion_mode',
                     type=str,
                     choices=list(SubRegionMode),
-                    default=SubRegionMode.CLIP,
+                    default=SubRegionMode.CREATE,
                     help=("How far detected subclusters may influence region formation. "
                           "The 'clip' option keeps only the part of a subcluster "
                           "overlapping an area found by another detection module, "
