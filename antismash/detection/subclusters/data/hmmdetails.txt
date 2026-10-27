@@ -33,6 +33,7 @@ Chorismate_bind_2	Chorismate binding enzyme	27	rule_hmms/Chorismate_bind_2.hmm	P
 Condensation	Condensation domain	30	rule_hmms/Condensation.hmm	PF00668.26
 DHQS	3-dehydroquinate synthase II N-terminal domain	24	rule_hmms/DHQS.hmm	PF01959.22
 DHQS_2nd	3-dehydroquinate synthase II C-terminal domain	22	rule_hmms/DHQS_2nd.hmm	PF26558.1
+DUF1702	Protein of unknown function (DUF1702)	31	rule_hmms/DUF1702.hmm	PF08012.17
 DUF6365	Family of unknown function (DUF6365)	51	rule_hmms/DUF6365.hmm	PF19892.6
 DXP_synthase_N	1-deoxy-D-xylulose-5-phosphate synthase	21	rule_hmms/DXP_synthase_N.hmm	PF13292.12
 DegT_DnrJ_EryC1	DegT/DnrJ/EryC1/StrS aminotransferase family	19	rule_hmms/DegT_DnrJ_EryC1.hmm	PF01041.24

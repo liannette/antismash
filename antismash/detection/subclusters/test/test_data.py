@@ -8,6 +8,7 @@ import os
 import unittest
 
 from antismash.common import path
+from antismash.common.hmm_rule_parser.rule_parser import Tokeniser, TokenTypes
 from antismash.detection.subclusters import compounds
 from antismash.detection.subclusters.ruleset import STRICTNESS_LEVELS, get_ruleset
 from antismash.detection.subclusters.signatures import get_signatures
@@ -36,3 +37,17 @@ class TestDataConsistency(unittest.TestCase):
             with open(signature.hmm_file, encoding="utf-8") as handle:
                 hmm_names = [line.split()[-1] for line in handle if line.startswith("NAME")]
             assert hmm_names == [name], f"{signature.hmm_file}: {hmm_names} != [{name!r}]"
+
+    def test_extenders_have_signatures(self):
+        # the rule parser only checks that the identifiers in a rule's conditions
+        # have signatures, so an extender without one would silently never match
+        signatures = set(get_signatures())
+        missing = {}
+        for rule in get_ruleset(STRICTNESS_LEVELS[-1]).rules:
+            if not rule.extenders:
+                continue
+            tokens = Tokeniser(str(rule.extenders)).tokens
+            names = {token.identifier for token in tokens if token.type == TokenTypes.IDENTIFIER}
+            if names - signatures:
+                missing[rule.name] = sorted(names - signatures)
+        assert not missing, f"extenders without signatures: {missing}"
