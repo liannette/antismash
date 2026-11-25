@@ -25,6 +25,9 @@ BD-FAE	BD-FAE	26	rule_hmms/BD-FAE.hmm	PF20434.6
 Chorismate_bind	chorismate binding enzyme	27	rule_hmms/Chorismate_bind.hmm	PF00425.26
 CM-like	chorismate mutase family protein	73	rule_hmms/CM-like.hmm	TIGR01803.1
 Condensation	Condensation domain	30	rule_hmms/Condensation.hmm	PF00668.26
+Condensation_DCL	Condensation_DCL	150	rule_hmms/Condensation_DCL.hmm	
+Condensation_LCL	Condensation_LCL	150	rule_hmms/Condensation_LCL.hmm	
+Condensation_Starter	Condensation_Starter	150	rule_hmms/Condensation_Starter.hmm	
 crot-CoA-red	crotonyl-CoA carboxylase/reductase	378	rule_hmms/crot-CoA-red.hmm	TIGR01751.1
 Cupin_2	Cupin domain	24	rule_hmms/Cupin_2.hmm	PF07883.18
 DAHP_synth_2	Class-II DAHP synthetase family	27	rule_hmms/DAHP_synth_2.hmm	PF01474.23

@@ -33,9 +33,7 @@ RULE BB0007
     DESCRIPTION 3-amino-4,7-dihydroxycoumarin
     CUTOFF 5
     NEIGHBOURHOOD 0
-    CONDITIONS p450
-               and cds(adh_short_C2 and not ketoacyl-synt and not Condensation)
-               and cds(AA-adenyl-dom and AMP-binding_C and PP-binding and not ketoacyl-synt)
+    CONDITIONS p450 and cds(adh_short_C2 and not ketoacyl-synt and not Condensation) and cds(AA-adenyl-dom and AMP-binding_C and PP-binding and not ketoacyl-synt and not Condensation_LCL and not Condensation_DCL and not Condensation_Starter)
 
 RULE BB0008
     CATEGORY Subcluster
